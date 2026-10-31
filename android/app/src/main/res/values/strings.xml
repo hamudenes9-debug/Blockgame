@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Blokko</string>
-    <string name="title_activity_main">Blokko</string>
+    <string name="app_name">Kelime Seyyahı</string>
+    <string name="title_activity_main">Kelime Seyyahı</string>
     <string name="package_name">com.blokko.game</string>
     <string name="custom_url_scheme">com.blokko.game</string>
 </resources>

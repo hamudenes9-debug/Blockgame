@@ -72,9 +72,10 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           TAG="v$VERSION"
           cp android/app/build/outputs/apk/debug/app-debug.apk Blokko.apk
-          sha256sum Blokko.apk > SHA256SUMS.txt
+          cp Blokko.apk Kelime-Seyyahi.apk
+          sha256sum Kelime-Seyyahi.apk Blokko.apk > SHA256SUMS.txt
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists. Bump the version for a new public release."
             exit 1
           fi
-          gh release create "$TAG" Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --title "Blokko $VERSION" --notes "Android test sürümü. Mevcut uygulamanın üzerine yükleyin. Google girişi, aşamalar ve boss, altın ve mağaza, koşullar/gizlilik, açılışta GitHub sürüm kontrolü. Altın ve ilerleme cihazda saklanır. Destek: Tirezteknoloji@gmail.com."
+          gh release create "$TAG" Kelime-Seyyahi.apk Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --title "Kelime Seyyahı $VERSION" --notes "Android test sürümü. Mevcut uygulamanın üzerine yükleyin. 24 Türkçe kelime bulmacası, harf birleştirme, seyahat rotaları, altın ve ipucu mağazası, Google girişi ve GitHub sürüm kontrolü. Blokko.apk eski güncelleme istemcileri için aynı dosyanın takma adıdır. Dünya sıralaması için wordScores Firestore kuralları yayınlanmalıdır. Altın ve ilerleme cihazda saklanır. Destek: Tirezteknoloji@gmail.com."

@@ -37,14 +37,14 @@ export async function submitScore(score,mode){
     await auth.authStateReady();
     const user=auth.currentUser;
     if(!user)throw cloudError('unauthenticated');
-    const result=await addDoc(collection(db,'scores'),{uid:user.uid,name:(user.displayName||'Oyuncu').slice(0,100),score,mode,date:Date.now()});
+    const result=await addDoc(collection(db,'wordScores'),{uid:user.uid,name:(user.displayName||'Oyuncu').slice(0,100),score,mode,date:Date.now()});
     return {id:result.id};
   })());
 }
 export async function getScores(){
   if(!db)throw cloudError('not-configured');
   // A world ranking must come from the server, never a local cached result.
-  const snapshot=await withTimeout(getDocsFromServer(query(collection(db,'scores'),orderBy('score','desc'),limit(20))));
+  const snapshot=await withTimeout(getDocsFromServer(query(collection(db,'wordScores'),orderBy('score','desc'),limit(20))));
   return snapshot.docs.map(d=>d.data());
 }
 

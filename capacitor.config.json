@@ -1,8 +1,8 @@
 {
   "appId": "com.blokko.game",
-  "appName": "Blokko",
+  "appName": "Kelime Seyyahı",
   "webDir": "dist",
-  "backgroundColor": "#f8f9fc",
+  "backgroundColor": "#faf8f1",
   "plugins": {
     "FirebaseAuthentication": {
       "skipNativeAuth": true,

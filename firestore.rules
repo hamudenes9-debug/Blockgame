@@ -1,6 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // New word-game leaderboard; old shooter scores remain separate.
+    match /wordScores/{scoreId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'score', 'mode', 'date'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= 10000000
+        && request.resource.data.mode == 'word'
+        && request.resource.data.date is int;
+      allow update, delete: if false;
+    }
     match /scores/{score} {
       allow read: if true;
       allow create: if request.auth != null
