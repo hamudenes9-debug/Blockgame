@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {normalizeEconomy,purchase,settle,priceFor,loadout} from '../src/economy.js';
+import {createShooter,stepShooter} from '../src/shooter-engine.js';
+test('new player starts with no gold and normal gear',()=>{assert.equal(normalizeEconomy().gold,0);assert.deepEqual(loadout({}),{maxLives:3,damage:1,fireInterval:.16});});
+test('reward paid once per run, including boss bonus',()=>{const a=settle({},'run1',{kills:12,won:true});assert.equal(a.earned,110);assert.equal(settle(a.economy,'run1',{kills:12,won:true}).economy.gold,110);assert.equal(settle(a.economy,'run2',{kills:4,won:false}).economy.gold,130);});
+test('purchase deducts gold and increases only selected upgrade',()=>{const result=purchase({gold:300},'speed');assert.equal(result.ok,true);assert.equal(result.economy.gold,180);assert.equal(result.economy.upgrades.speed,1);assert.equal(priceFor(result.economy,'speed'),240);});
+test('insufficient gold and max level cannot be purchased',()=>{assert.equal(purchase({gold:119},'speed').ok,false);assert.equal(purchase({gold:9999,upgrades:{speed:3}},'speed').ok,false);assert.equal(purchase({},'__proto__').ok,false);});
+test('loadout changes life, fire rate and actual damage',()=>{const gear=loadout({upgrades:{power:2,armor:2,speed:3}}),s=createShooter(1,gear);assert.equal(s.lives,5);assert.equal(s.damage,3);assert.ok(s.fireInterval<.1);s.spawn=100;s.blocks=[{x:200,y:100,size:40,hp:2,maxHp:2,color:0}];s.bullets=[{x:200,y:125}];stepShooter(s,.03,false);assert.equal(s.kills,1);assert.equal(s.blocks.length,0);});
+test('invalid stored economy is normalized',()=>{const e=normalizeEconomy({gold:-5,upgrades:{armor:999,power:-2}});assert.equal(e.gold,0);assert.equal(e.upgrades.armor,2);assert.equal(e.upgrades.power,0);});

@@ -47,3 +47,5 @@ export async function getScores(){
   const snapshot=await withTimeout(getDocsFromServer(query(collection(db,'scores'),orderBy('score','desc'),limit(20))));
   return snapshot.docs.map(d=>d.data());
 }
+
+export async function getSessionUser(){if(!auth)return null;await withTimeout(auth.authStateReady(),5000);return auth.currentUser;}
