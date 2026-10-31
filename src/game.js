@@ -1,0 +1,6 @@
+export const SHAPES = [[[0,0]],[[0,0],[0,1]],[[0,0],[0,1],[0,2]],[[0,0],[1,0],[2,0]],[[0,0],[0,1],[1,0],[1,1]],[[0,0],[1,0],[2,0],[2,1]],[[0,0],[0,1],[0,2],[1,1]],[[0,0],[0,1],[1,1],[1,2]],[[0,0],[0,1],[0,2],[0,3]]];
+export const emptyBoard=()=>Array.from({length:8},()=>Array(8).fill(0));
+export function canPlace(board,shape,r,c){return shape.every(([y,x])=>r+y>=0&&c+x>=0&&r+y<8&&c+x<8&&!board[r+y][c+x]);}
+export function place(board,shape,r,c,color){if(!canPlace(board,shape,r,c))return null; const next=board.map(row=>[...row]);shape.forEach(([y,x])=>next[r+y][c+x]=color);const rows=[],cols=[];for(let i=0;i<8;i++){if(next[i].every(Boolean))rows.push(i);if(next.every(row=>row[i]))cols.push(i);}for(const y of rows)next[y].fill(0);for(const x of cols)for(const row of next)row[x]=0;return {board:next,lines:rows.length+cols.length,points:shape.length*10+(rows.length+cols.length)**2*100};}
+export function hasMove(board,pieces){return pieces.some(p=>p&&board.some((row,r)=>row.some((_,c)=>canPlace(board,p.shape,r,c))));}
+export function seededRandom(seed){return ()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}

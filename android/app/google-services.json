@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "509266149759",
+    "project_id": "blockgame-46ae9",
+    "storage_bucket": "blockgame-46ae9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509266149759:android:a3968be7a6c81f51f59a4a",
+        "android_client_info": {
+          "package_name": "com.blokko.game"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "509266149759-ds8f6g8pm7sb05t3n3hl34ihh7p5n2pc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJKj-kQn01GJED6xRPgpWb-YSNBNyj504"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "509266149759-ds8f6g8pm7sb05t3n3hl34ihh7p5n2pc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
