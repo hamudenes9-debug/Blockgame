@@ -3,6 +3,7 @@ import {getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, sign
 import {getFirestore, collection, addDoc, query, orderBy, limit, getDocs} from 'firebase/firestore';
 import {Capacitor} from '@capacitor/core';
 import {FirebaseAuthentication} from '@capacitor-firebase/authentication';
+import {nativeGoogleSignIn} from './google-sign-in.js';
 import nativeConfig from './firebase-android.json';
 const native=Capacitor.isNativePlatform();
 const config=native?nativeConfig:{apiKey:import.meta.env.VITE_FIREBASE_API_KEY,authDomain:import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,projectId:import.meta.env.VITE_FIREBASE_PROJECT_ID,appId:import.meta.env.VITE_FIREBASE_APP_ID};
@@ -14,7 +15,7 @@ export async function login(){
   if(!configured)throw Error('Web Google girişi henüz yapılandırılmadı. Android uygulamasında Google ile giriş yapabilirsin.');
   try{
     if(native){
-      const result=await FirebaseAuthentication.signInWithGoogle();
+      const result=await nativeGoogleSignIn(FirebaseAuthentication);
       if(!result.credential?.idToken)throw Error('Google kimlik bilgisi alınamadı. Lütfen tekrar dene.');
       const credential=GoogleAuthProvider.credential(result.credential.idToken);
       return (await signInWithCredential(auth,credential)).user;
@@ -24,6 +25,7 @@ export async function login(){
     const detail=String(error.message||error);
     if(/10:|DEVELOPER_ERROR|12500|configuration/i.test(detail))throw Error('Google giriş yapılandırması eksik. Bu APK’nın SHA-1 ve SHA-256 değerlerini Firebase Android uygulamasına ekleyip tekrar dene.');
     if(/cancel|12501|closed-by-user/i.test(detail))throw Error('Giriş iptal edildi. İstersen tekrar deneyebilirsin.');
+    if(/no credentials? available|NoCredentialException/i.test(detail))throw Error('Google hesabı bulunamadı. Tabletin Ayarlar → Hesaplar bölümünde bir Google hesabı bulunduğunu ve Google Play Hizmetleri’nin güncel olduğunu kontrol et.');
     throw error;
   }
 }
