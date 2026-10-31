@@ -66,3 +66,11 @@ Artık arayüzde yalnızca Blok avı vardır; klasik/süreli/günlük bulmaca ek
 İlerleme `blokko-stage` anahtarında cihazda kaydedilir; hesap bazlı bulut eşitlemesi değildir. Eski yerel kayıtlar korunur, yeni sıralama yalnızca Blok avı kayıtlarını gösterir. Profilde mevcut Google hesabı, aşama ve yerel istatistikler yer alır. Google OAuth/imza ayarları değiştirilmemiştir. Oyundan menüye çıkmak o turu sonlandırır ve skorunu kaydeder; tamamlanmamış aşamayı açmaz.
 
 Kontroller: 22 birim testi; 390×844 dokunmatik Chromium görünümünde misafir girişi, ana sayfa, oyun başlatma/duraklatma ve üç alt menü arasında gezinme kontrol edildi. Konsol hatası ve yatay taşma görülmedi. Gerçek Android cihazda yeni sürümün boss mücadelesi ayrıca denenmelidir.
+
+## 1.3.1 — Çevrimiçi skor teşhisi
+
+Dünya sıralaması yalnızca sunucudan okunur (`getDocsFromServer`); 12 saniye sonra yanıt alınamazsa yükleniyor ekranı yerine hata ve tekrar deneme düğmesi gösterilir. Skor yazımı Google oturumunu bekler; oturum yoksa sessizce başarılı sayılmaz. Sıralama ekranında bu cihazın son skor gönderimi ve sunucu onayı durumu saklanır. Zaman aşımı yazımı iptal etmez; bu durumda kayıt başarılı/başarısız diye kesin bildirim yapılmaz. Eski yerel skorlar kendiliğinden yüklenmez; kurulumdan sonra yeni oyun tamamlayarak dene.
+
+Canlı Firebase projesinin yönetim erişimi bu ortamda yoktur. Projede **Firestore Database / (default)** oluşturulmalı, `firestore.rules` Rules sekmesinde yayınlanmalıdır. Google Authentication bunun yerine geçmez. Veritabanı kurulmadıysa veya kurallar reddediyorsa yalnızca APK güncellemek yetmez. Üretimde `allow read, write: if true` gibi herkese yazma açan kurallar kullanma.
+
+Dünya ekranı en yüksek 20 sunucu kaydı içinden `shooter` modundakileri gösterir, anlık abonelik değildir; Dünya'ya tekrar dokunmak yeniler. Sonucun diğer cihazda görülmesi sunucu yazım onayı ve yeterli sıralama puanı gerektirir. Her kullanıcının tek en yüksek puanının tutulması ve sunucuda hile doğrulaması henüz uygulanmamıştır.

@@ -1,6 +1,7 @@
+import {withTimeout} from './cloud-status.js';
 import {initializeApp} from 'firebase/app';
 import {getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut} from 'firebase/auth';
-import {getFirestore, collection, addDoc, query, orderBy, limit, getDocs} from 'firebase/firestore';
+import {getFirestore, collection, addDoc, query, orderBy, limit, getDocsFromServer} from 'firebase/firestore';
 import {Capacitor} from '@capacitor/core';
 import {FirebaseAuthentication} from '@capacitor-firebase/authentication';
 import {describeAuthError} from './auth-errors.js';
@@ -29,5 +30,20 @@ export async function login(){
   }
 }
 export async function logout(){if(auth)await signOut(auth);if(native)await FirebaseAuthentication.signOut();}
-export async function submitScore(score,mode){if(auth){await auth.authStateReady();if(auth.currentUser)await addDoc(collection(db,'scores'),{uid:auth.currentUser.uid,name:auth.currentUser.displayName||'Oyuncu',score,mode,date:Date.now()});}}
-export async function getScores(){if(!db)return [];return (await getDocs(query(collection(db,'scores'),orderBy('score','desc'),limit(20)))).docs.map(d=>d.data());}
+function cloudError(code){const error=new Error(code);error.code=code;return error;}
+export async function submitScore(score,mode){
+  if(!db||!auth)throw cloudError('not-configured');
+  return withTimeout((async()=>{
+    await auth.authStateReady();
+    const user=auth.currentUser;
+    if(!user)throw cloudError('unauthenticated');
+    const result=await addDoc(collection(db,'scores'),{uid:user.uid,name:(user.displayName||'Oyuncu').slice(0,100),score,mode,date:Date.now()});
+    return {id:result.id};
+  })());
+}
+export async function getScores(){
+  if(!db)throw cloudError('not-configured');
+  // A world ranking must come from the server, never a local cached result.
+  const snapshot=await withTimeout(getDocsFromServer(query(collection(db,'scores'),orderBy('score','desc'),limit(20))));
+  return snapshot.docs.map(d=>d.data());
+}
