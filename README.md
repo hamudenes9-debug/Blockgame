@@ -49,4 +49,6 @@ Test imzalama anahtarı Actions cache içinde korunur; repoya veya APK artifact'
 
 `android/app/google-services.json` eklendi. Firebase projesi: `blockgame-46ae9`; Android paket adı: `com.blokko.game`. Gradle Google Services eklentisi dosyayı işler. Bu dosya istemci yapılandırmasıdır, servis hesabı özel anahtarı değildir.
 
-Güncellenen dosyada Google web OAuth istemcisi (`client_type: 3`) mevcut. Android OAuth istemcisi (`client_type: 1`) henüz bulunmuyor. Uygulamayı imzalayan sertifikanın SHA-1/SHA-256 parmak izleri Firebase Console'da yapılandırıldıktan sonra güncel dosya yeniden indirilmelidir. Android native giriş entegrasyonu eklendi; web Firebase yapılandırması ayrıdır. Firebase Console sertifika kaydı ve cihaz üstünde giriş testi gereklidir.
+Güncellenen dosyada Google web OAuth istemcisi (`client_type: 3`) mevcut. Android OAuth istemcisi (`client_type: 1`) güncel dosyada mevcut; SHA-1 değeri test imzasıyla eşleşiyor. İş akışı artık üretilen APK sertifikasını Android OAuth istemcisiyle karşılaştırır ve eşleşmiyorsa dağıtımı durdurur. Android native giriş entegrasyonu eklendi; web Firebase yapılandırması ayrıdır. Firebase Console sertifika kaydı ve cihaz üstünde giriş testi gereklidir.
+
+Sürüm 1.1.2: güncel Firebase Android OAuth yapılandırması ve aşama/hata kodu içeren giriş teşhisi. Yapılandırmanın eşleşmesi, cihaz üstünde giriş başarısının doğrulandığı anlamına gelmez.

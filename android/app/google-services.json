@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "509266149759-kdkush0t10ndismo0sjrs827e19b1ekr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.blokko.game",
+            "certificate_hash": "09fa6f51c6701f1891fd5e7d117d1c11180a2aae"
+          }
+        },
+        {
           "client_id": "509266149759-ds8f6g8pm7sb05t3n3hl34ihh7p5n2pc.apps.googleusercontent.com",
           "client_type": 3
         }

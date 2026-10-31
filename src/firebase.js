@@ -3,6 +3,7 @@ import {getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, sign
 import {getFirestore, collection, addDoc, query, orderBy, limit, getDocs} from 'firebase/firestore';
 import {Capacitor} from '@capacitor/core';
 import {FirebaseAuthentication} from '@capacitor-firebase/authentication';
+import {describeAuthError} from './auth-errors.js';
 import {nativeGoogleSignIn} from './google-sign-in.js';
 import nativeConfig from './firebase-android.json';
 const native=Capacitor.isNativePlatform();
@@ -13,20 +14,18 @@ if(configured){const app=initializeApp(config);auth=getAuth(app);db=getFirestore
 export {configured};
 export async function login(){
   if(!configured)throw Error('Web Google girişi henüz yapılandırılmadı. Android uygulamasında Google ile giriş yapabilirsin.');
+  let stage=native?'Android Google hesap seçimi':'Web Google girişi';
   try{
     if(native){
       const result=await nativeGoogleSignIn(FirebaseAuthentication);
       if(!result.credential?.idToken)throw Error('Google kimlik bilgisi alınamadı. Lütfen tekrar dene.');
+      stage='Firebase oturumu';
       const credential=GoogleAuthProvider.credential(result.credential.idToken);
       return (await signInWithCredential(auth,credential)).user;
     }
     return (await signInWithPopup(auth,new GoogleAuthProvider())).user;
   }catch(error){
-    const detail=String(error.message||error);
-    if(/10:|DEVELOPER_ERROR|12500|configuration/i.test(detail))throw Error('Google giriş yapılandırması eksik. Bu APK’nın SHA-1 ve SHA-256 değerlerini Firebase Android uygulamasına ekleyip tekrar dene.');
-    if(/cancel|12501|closed-by-user/i.test(detail))throw Error('Giriş iptal edildi. İstersen tekrar deneyebilirsin.');
-    if(/no credentials? available|NoCredentialException/i.test(detail))throw Error('Google hesabı bulunamadı. Tabletin Ayarlar → Hesaplar bölümünde bir Google hesabı bulunduğunu ve Google Play Hizmetleri’nin güncel olduğunu kontrol et.');
-    throw error;
+    throw Error(describeAuthError(error,stage));
   }
 }
 export async function logout(){if(auth)await signOut(auth);if(native)await FirebaseAuthentication.signOut();}
