@@ -58,3 +58,11 @@ Sürüm 1.1.2: güncel Firebase Android OAuth yapılandırması ve aşama/hata k
 Yeni varsayılan modda bloklar yukarıdan düşer. Oyun alanında basılı tutarak ateş et, sürükleyerek topu taşı. Ayrı yön/ateş düğmeleri ve klavyede yön tuşları + boşluk da desteklenir. Her kaçan blok bir can azaltır; üç can bittiğinde oyun sona erer. Sayılar blok dayanıklılığıdır. Her 12 blokta dalga artar. Arka plana geçerken ve hesap/sıralama pencereleri açılınca duraklar. Eski bulmaca modları korunur.
 
 Yerel skorlar otomatik saklanır. **Yeni `shooter` modunun çevrimiçi skorları için güncellenmiş `firestore.rules` Firebase Console'da yayınlanmalıdır.** Bu değişiklik Google giriş ayarlarını değiştirmez. Kurallar bu çalışma ortamından otomatik yayınlanmamıştır.
+
+## 1.3.0 — Tek mod, aşamalar ve boss
+
+Artık arayüzde yalnızca Blok avı vardır; klasik/süreli/günlük bulmaca ekranları kaldırılmıştır. Mobilde sabit Anasayfa / Sıralama / Profil menüsü bulunur. Ana sayfa mevcut aşamayı, tamamlanan ve kilitli aşamaları gösterir. Her aşamada 12 blok vurulduktan sonra hareket eden, can çubuğu olan ve oyuncuya atış yapan boss gelir. Boss yenilince sonraki aşama açılır. Kaybedilen aşama yeniden denenebilir; kilitli aşama seçilemez.
+
+İlerleme `blokko-stage` anahtarında cihazda kaydedilir; hesap bazlı bulut eşitlemesi değildir. Eski yerel kayıtlar korunur, yeni sıralama yalnızca Blok avı kayıtlarını gösterir. Profilde mevcut Google hesabı, aşama ve yerel istatistikler yer alır. Google OAuth/imza ayarları değiştirilmemiştir. Oyundan menüye çıkmak o turu sonlandırır ve skorunu kaydeder; tamamlanmamış aşamayı açmaz.
+
+Kontroller: 22 birim testi; 390×844 dokunmatik Chromium görünümünde misafir girişi, ana sayfa, oyun başlatma/duraklatma ve üç alt menü arasında gezinme kontrol edildi. Konsol hatası ve yatay taşma görülmedi. Gerçek Android cihazda yeni sürümün boss mücadelesi ayrıca denenmelidir.
