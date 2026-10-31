@@ -19,3 +19,10 @@ export function revealedCells(layout,state){return new Set([...state.hints,...la
 export function guessWord(level,state,input){const word=normalizeWord(input);if(!canSpell(word,level.letters))return 'invalid';if(state.found.includes(word)||state.bonus.includes(word))return 'duplicate';if(level.words.includes(word)){state.found.push(word);return 'found';}if(level.bonus.includes(word)){state.bonus.push(word);return 'bonus';}return 'unknown';}
 export function revealHint(layout,state){const revealed=revealedCells(layout,state),cell=layout.cells.find(c=>!revealed.has(c.key));if(!cell)return null;state.hints.push(cell.key);state.hintsUsed++;const now=revealedCells(layout,state);for(const word of layout.words)if(!state.found.includes(word.word)&&word.cells.every(k=>now.has(k)))state.found.push(word.word);return cell;}
 export const puzzleScore=(level,state)=>Math.max(0,level.words.reduce((n,w)=>n+w.length*20,0)+100+state.bonus.length*10-state.hintsUsed*10);
+
+// Returns true only for a newly added tile (not hover repetition or backtracking).
+export function selectLetter(path,id){
+ if(path.length>1&&path.at(-2)===id){path.pop();return false;}
+ if(path.includes(id))return false;
+ path.push(id);return true;
+}

@@ -64,3 +64,9 @@ CI testleri, Android derlemesini ve **üretilen APK imzasının Firebase Android
 ## Doğrulama
 
 `npm test`: mevcut regresyon testleri ve 24 bulmacanın harf çoklukları, çapraz kesişimleri/bağlantısı, çözülebilirliği, Türkçe dönüşümleri, ipuçları, aşama başına tek ödül ve eski altın aktarımı. Mobil Chromium 390×844'te gerçek pointer sürüklemesiyle KALE seçimi, klavyeyle aşama tamamlama, ipucu satın alma/tüketme, geri dönüş ve yeniden yüklemede ilerleme, tek seferlik cüzdan aktarımı, profil destek bağlantısı ve yatay taşma kontrol edildi. Ayrıca 24 aşamanın tamamı gerçek arayüz üzerinden çözülerek sonraki aşama geçişleri, son durak ekranı ve ilk tamamlama ödülleri kontrol edildi. Gerçek Android cihazda yeni sürüm ayrıca denenmelidir.
+
+## 1.5.1 — Harf seçimi sesleri
+
+Yeni bir harf kutusu seçildiğinde kısa ve yumuşak, iki sinüs bileşenli bir ses çalar. Harf sayısıyla birlikte pentatonik notalar yükselir. Dokunma, sürükleme ve klavyeyle harf kutusu seçimi aynı yolu kullanır. Aynı kutunun üzerinde beklemek veya önceki harfe geri dönmek tekrar ses üretmez. Üstteki ses anahtarı hem harf hem doğru kelime sesini kapatır; tercih cihazda saklanır. Sesler Web Audio ile yerelde üretilir, internetten dosya indirilmez. Ses API'si yoksa veya tarayıcı sesi engelliyorsa oyun devam eder. Eşzamanlı ses sayısı sınırlandırılır ve biten düğümler serbest bırakılır.
+
+52 birim testi ve üretim derlemesi geçti. Ses seçimi, tekrar engelleme, sessiz mod, notalar, düğüm temizliği ve bloke edilmiş ses başlatma testleri eklendi. Gerçek cihazdaki hoparlör/ses seviyesi ayrıca denenmelidir.
