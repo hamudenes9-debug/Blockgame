@@ -37,7 +37,11 @@ Varsayılan sürüm misafir modunda tamamen oynanabilir. Örnek/düzmece sırala
 4. Firestore oluştur ve `firestore.rules` kurallarını yayınla.
 5. Yeniden derle. Firebase anahtarları istemci yapılandırmasıdır; servis hesabı veya özel anahtar ekleme.
 
-Web Google girişi Firebase popup akışını kullanır. **Android WebView'de Google popup girişi desteklenmeyebilir; APK'da misafir modu çalışır.** Üretim Android Google girişi için native Google Sign-In entegrasyonu, Firebase Android uygulaması, SHA parmak izleri ve OAuth istemcisi ayrıca yapılandırılmalıdır. APK'nın Google girişinin tamamlandığı iddia edilmez.
+Web Google girişi Firebase popup akışını kullanır ve web `.env.local` ayarlarını gerektirir. Android ise `@capacitor-firebase/authentication` ile native Google hesap seçimini kullanır. Alınan Google ID token, JavaScript Firebase Auth oturumuna çevrilir; Firestore da aynı oturumu kullanır. Android istemci yapılandırması `google-services.json` dosyasından `prebuild` adımında üretilir.
+
+Android girişinin cihazda çalışması için APK sertifikasının SHA-1 ve SHA-256 değerlerini Firebase Console > Proje ayarları > Android uygulaması > Parmak izi ekle alanına kaydet. İş akışı bu değerleri `firebase-fingerprints.txt` olarak APK ile birlikte ve iş özetinde verir. Google Play Hizmetleri olan bir cihaz gerekir. Gerçek cihazda başarılı giriş henüz doğrulanmamıştır.
+
+Test imzalama anahtarı Actions cache içinde korunur; repoya veya APK artifact'ına özel anahtar konmaz. Cache silinir/sona ererse sertifika değişir: yeni parmak izleri eklenmeli ve önceki APK kaldırılmalıdır (yerel skorlar silinir). Bu düzen üretim imzalama yerine geçmez; Play Store yayını için erişimi kontrollü kalıcı release anahtarı / Play App Signing gerekir.
 
 Çevrimiçi skorlar Firebase oturumu olan kullanıcılar tarafından gönderilir. Yerel olarak saklanan profil kimlik doğrulama sağlamaz. Firestore kuralları alanları denetler ancak oyun sonuçlarının doğruluğunu doğrulamaz; rekabetçi sıralama için sunucu taraflı doğrulama ve kötüye kullanım önleme eklenmelidir. Günlük mod tekrar oynanabilir; tek denemeli yarışma değildir.
 
@@ -45,4 +49,4 @@ Web Google girişi Firebase popup akışını kullanır. **Android WebView'de Go
 
 `android/app/google-services.json` eklendi. Firebase projesi: `blockgame-46ae9`; Android paket adı: `com.blokko.game`. Gradle Google Services eklentisi dosyayı işler. Bu dosya istemci yapılandırmasıdır, servis hesabı özel anahtarı değildir.
 
-Güncellenen dosyada Google web OAuth istemcisi (`client_type: 3`) mevcut. Android OAuth istemcisi (`client_type: 1`) henüz bulunmuyor. Uygulamayı imzalayan sertifikanın SHA-1/SHA-256 parmak izleri Firebase Console'da yapılandırıldıktan sonra güncel dosya yeniden indirilmelidir. Android native giriş entegrasyonu ve web Firebase yapılandırması hâlâ gereklidir; dosyanın eklenmesi bunları otomatik etkinleştirmez. Android derlemesi bu ortamda doğrulanmadı.
+Güncellenen dosyada Google web OAuth istemcisi (`client_type: 3`) mevcut. Android OAuth istemcisi (`client_type: 1`) henüz bulunmuyor. Uygulamayı imzalayan sertifikanın SHA-1/SHA-256 parmak izleri Firebase Console'da yapılandırıldıktan sonra güncel dosya yeniden indirilmelidir. Android native giriş entegrasyonu eklendi; web Firebase yapılandırması ayrıdır. Firebase Console sertifika kaydı ve cihaz üstünde giriş testi gereklidir.

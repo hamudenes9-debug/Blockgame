@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: read
+      checks: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -22,6 +23,20 @@ jobs:
         run: |
           test -d "$ANDROID_HOME"
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --version
+      - name: Restore test signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: blokko-android-test-signing-v1
+      - name: Prepare test signing key and fingerprints
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Blokko Debug,O=Android,C=TR"
+          fi
+          keytool -list -v -keystore "$HOME/.android/debug.keystore" -alias androiddebugkey -storepass android > firebase-fingerprints.txt
+          cat firebase-fingerprints.txt
+          cat firebase-fingerprints.txt >> "$GITHUB_STEP_SUMMARY"
       - run: npm ci
       - run: npm test
       - run: npm run android:sync
@@ -29,4 +44,16 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Blokko-Android-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            firebase-fingerprints.txt
+      - name: Attach certificate fingerprints to check summary
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f firebase-fingerprints.txt ]; then
+            CHECK_ID=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" --jq '.check_runs[] | select(.name == "apk") | .id' | head -1)
+            jq -n --rawfile summary firebase-fingerprints.txt '{output:{title:"Firebase signing fingerprints",summary:$summary}}' > check-output.json
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/check-runs/$CHECK_ID" --input check-output.json
+          fi
