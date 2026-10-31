@@ -52,3 +52,9 @@ Test imzalama anahtarı Actions cache içinde korunur; repoya veya APK artifact'
 Güncellenen dosyada Google web OAuth istemcisi (`client_type: 3`) mevcut. Android OAuth istemcisi (`client_type: 1`) güncel dosyada mevcut; SHA-1 değeri test imzasıyla eşleşiyor. İş akışı artık üretilen APK sertifikasını Android OAuth istemcisiyle karşılaştırır ve eşleşmiyorsa dağıtımı durdurur. Android native giriş entegrasyonu eklendi; web Firebase yapılandırması ayrıdır. Firebase Console sertifika kaydı ve cihaz üstünde giriş testi gereklidir.
 
 Sürüm 1.1.2: güncel Firebase Android OAuth yapılandırması ve aşama/hata kodu içeren giriş teşhisi. Yapılandırmanın eşleşmesi, cihaz üstünde giriş başarısının doğrulandığı anlamına gelmez.
+
+## 1.2.0 — Blok avı
+
+Yeni varsayılan modda bloklar yukarıdan düşer. Oyun alanında basılı tutarak ateş et, sürükleyerek topu taşı. Ayrı yön/ateş düğmeleri ve klavyede yön tuşları + boşluk da desteklenir. Her kaçan blok bir can azaltır; üç can bittiğinde oyun sona erer. Sayılar blok dayanıklılığıdır. Her 12 blokta dalga artar. Arka plana geçerken ve hesap/sıralama pencereleri açılınca duraklar. Eski bulmaca modları korunur.
+
+Yerel skorlar otomatik saklanır. **Yeni `shooter` modunun çevrimiçi skorları için güncellenmiş `firestore.rules` Firebase Console'da yayınlanmalıdır.** Bu değişiklik Google giriş ayarlarını değiştirmez. Kurallar bu çalışma ortamından otomatik yayınlanmamıştır.
