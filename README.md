@@ -1,6 +1,6 @@
 # Kelime Seyyahı
 
-> **Güncel sürüm 1.10.0:** Premium, canlı duyurular/bakım, zorunlu internet/sürüm, sunucu zamanı ve bildirim göndericisi. **APK’yı dağıtmadan önce [LIVE-SETUP.md](LIVE-SETUP.md) kurulumunu tamamla; aksi halde erişim kapısı açılmaz.** Premium verme: [PREMIUM-GUIDE.md](PREMIUM-GUIDE.md).
+> **Güncel sürüm 1.10.1:** Zorunlu internet kaldırıldı. Normal bölümler çevrimdışı oynanır; bulut eşitleme, Premium doğrulaması ve güvenli ödüller için [LIVE-SETUP.md](LIVE-SETUP.md) kurulumu ve bağlantı gerekir. Premium verme: [PREMIUM-GUIDE.md](PREMIUM-GUIDE.md).
 
 
 > **Önceki sürüm 1.9.0:** 124 bölüm / 16 durak, 30 günlük keşif defteri, görev ödülleri, 6 avatar hediyesi ve 8 rozet. **Yeni Firestore kurallarını yayımla ve tüm cihazları güncelle.** Kurulum ve kayıt koruma: [MONTH-UPDATE.md](MONTH-UPDATE.md).

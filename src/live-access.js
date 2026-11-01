@@ -1,7 +1,7 @@
 import {doc,getDocFromServer} from 'firebase/firestore';
 import {freshIdentity,requireCloudUser,logout} from './firebase.js';
 import {APP_VERSION} from './version.js';
-import {validatePolicy,accessDecision,premiumActive,createServerClock} from './live-policy.js';
+import {validatePolicy,accessDecision,servicesReady,premiumActive,createServerClock} from './live-policy.js';
 import {withTimeout} from './cloud-status.js';
 export const serverClock=createServerClock();
 let generation=0;
@@ -11,8 +11,10 @@ export const liveIdentity=()=>identity;
 export const premiumRecord=()=>entitlement;
 export const accessStatus=()=>accessDecision({policy,version:APP_VERSION,connected:navigator.onLine&&!!identity,leaseAge:serverClock.age(),configAge:performance.now()-configAt,blocked,bypass});
 export const canPlay=()=>accessStatus()==='ready';
-export const hasPremium=()=>canPlay()&&!!identity&&!identity.anonymous&&premiumActive(entitlement,serverClock.now());
-export const trustedDate=()=>{if(!canPlay())throw Error('Önce çevrimiçi erişim kontrolü tamamlanmalı.');return new Date(serverClock.now());};
+export const canUseServices=()=>canPlay()&&servicesReady({connected:navigator.onLine,identity,policy,leaseAge:serverClock.age(),configAge:performance.now()-configAt,blocked});
+export const playDate=()=>canUseServices()?new Date(serverClock.now()):new Date();
+export const hasPremium=()=>canUseServices()&&!!identity&&!identity.anonymous&&premiumActive(entitlement,serverClock.now());
+export const trustedDate=()=>{if(!canUseServices())throw Error('Önce çevrimiçi erişim kontrolü tamamlanmalı.');return new Date(serverClock.now());};
 export function maintenanceCode(code){if(code==='221015'&&accessStatus()==='maintenance'){bypass=true;callback();return true;}return false;}
 export function resetAccess(){generation++;blocked=false;identity=null;entitlement=null;bypass=false;accountAt=-Infinity;callback();checkAccess();}
 export function onAccessChange(fn){callback=fn;}

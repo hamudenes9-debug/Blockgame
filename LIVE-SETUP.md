@@ -1,6 +1,6 @@
-# 1.10.0 — Canlı sistem kurulumu (önce bunu tamamla)
+# 1.10.1 — İsteğe bağlı çevrimiçi hizmetlerin kurulumu
 
-**Bu sürüm zorunlu internetli. Üretim kurulumu yapılmadan yeni APK erişim kontrolü ekranında bekler.** Bu çalışma sırasında üretim Firestore kuralları, Firebase sağlayıcıları, yönetici secret veya gerçek kullanıcının Premium kaydı değiştirilmedi. Kod/test/APK hazırlamak canlı sisteme yönetici erişimi vermez.
+**1.10.1 normal oyun için zorunlu interneti kaldırır. Sunucu kurulumu yoksa veya bağlantı kesilirse normal bölümler oynanır, ilerleme cihazda saklanır. Bulut eşitleme, Premium doğrulaması ve güvenli görev/bayram ödülleri ise çevrimiçi doğrulama ister.** Bu çalışma sırasında üretim Firestore kuralları, Firebase sağlayıcıları, yönetici secret veya gerçek kullanıcının Premium kaydı değiştirilmedi. Kod/test/APK hazırlamak canlı sisteme yönetici erişimi vermez.
 
 ## 1. Mevcut kayıtları koru
 
@@ -60,7 +60,7 @@ Gönderici `notificationDeliveries/{id}` kaydını göndermeden önce ayırır; 
 
 Ayarlar uygulamada yaklaşık 60 saniyede bir sunucudan okunur; 120 saniyeyi aşan/başarısız kontrol oynanışı bekletir. GitHub Actions kuyruğu ve ağ nedeniyle anında küresel değişiklik sözü yoktur.
 
-**221015** yalnızca istemcinin bakım ekranını geçer. Kamuya açık APK’dan bulunabilir; yönetici yetkisi, ban kaldırma, Premium veya minimum sürüm/internet geçişi vermez. Bakım ekranı istemci kapısıdır, Firestore’u yönetici bakımına kapatan bir güvenlik yetkisi değildir.
+**221015** yalnızca istemcinin bakım ekranını geçer. Kamuya açık APK’dan bulunabilir; yönetici yetkisi, ban kaldırma, Premium veya minimum sürüm geçişi vermez. Bakım ekranı istemci kapısıdır, Firestore’u yönetici bakımına kapatan bir güvenlik yetkisi değildir.
 
 ## 5. Bayram takvimi
 
@@ -79,7 +79,7 @@ Yayıncı günde bir kez Diyanet’in mevcut ve sonraki yıl takvimini okumayı 
 - Görev başlangıç belgesi değişmez; ödül günü sunucu zamanından denetlenir. UID/gün ödül belgesi yalnızca bir kez oluşturulur; cüzdan artışı aynı işlemde doğrulanır. İki cihazdan tekrar ödül mint edilmez. Başlangıç/görev verilerini elle değiştirmek bu tarih kontrolünü aşmaz.
 - Eski sunucu kayıtları bir kerelik geçişte korunur. Eski yerel misafir takviminin geçmişi kanıtlanamaz; güvenli sunucu başlangıcı yenilenebilir, daha önce alınmış yerel ödül işaretleri korunur. Yeni sunucu ödemesi belirsiz kalırsa misafir için kayıt kurtarma onayı ve yerel yedek vardır.
 - **Tam anti-cheat değildir:** mevcut bölüm çözümü, normal altın/ilerleme ve eski kayıt ithali hâlâ istemci bildirimine dayanır. Bu değişiklik bütün sahte istemci cüzdanlarını doğruladığını iddia etmez; yeni görev ödeme işlemi, zaman, sahiplik ve tek seferlik bayram/ödül makbuzlarını korur. Misafir verileri kalıcı giriş hesabının yerini tutmaz.
-- 5 saniyelik yenileme aktif oyuncu başına saatte yaklaşık 720 Auth isteği demektir. Canlı ayar ve Premium okumaları yaklaşık dakikalıktır; Firestore/Spark ve Auth kotalarını izle. Kotaya ulaşıldığında zorunlu bağlantı kapısı oyunu bekletebilir. Ücretli plana otomatik geçiş yoktur; yoğunluk için kontrol sıklığı/altyapı yeniden değerlendirilmelidir.
+- 5 saniyelik yenileme aktif oyuncu başına saatte yaklaşık 720 Auth isteği demektir. Canlı ayar ve Premium okumaları yaklaşık dakikalıktır; Firestore/Spark ve Auth kotalarını izle. Kotaya ulaşıldığında çevrimiçi hizmetler bekler; normal oyun durdurulmaz. Ücretli plana otomatik geçiş yoktur; yoğunluk için kontrol sıklığı/altyapı yeniden değerlendirilmelidir.
 
 ## 7. Premium ve fiziksel doğrulama
 
@@ -94,3 +94,6 @@ Yayımlayıcı `operations/current.levelIds` alanını sabit 1–124 listesi ola
 Yeni APK sürümleri önce GitHub **Pre-release** olarak oluşturulur. Bu sırada `/releases/latest` üzerinden güncelleme kontrolü yapan mevcut oyunculara zorlanmaz. Yukarıdaki canlı kurulum ve fiziksel cihaz kontrol listesi tamamlanınca sürümün GitHub düzenleme ekranında **Pre-release** işaretini kaldırıp **Latest release** olarak işaretleyin. Yönetici CLI karşılığı: `gh release edit v1.10.0 --prerelease=false --latest`. Bu işlem bu güncelleme sırasında yapılmadı.
 
 Aynı sürüm numarasıyla tekrar derleme mevcut APK’yı değiştirmez: CI test/derleme çıktısını artifact olarak saklar, yeni release yayımlamadan geçer. Uygulama kodu değişikliklerini dağıtmak için sürüm numarasını artırın.
+
+### 1.10.1 çevrimdışı davranışı
+Eksik/erişilemeyen canlı ayar veya eski oturum zaman bilgisi normal oyunu kilitlemez. Oynanış için yerel tarih kullanılabilir; görev ödülünün sunucu zamanı ve tek-seferlik makbuz kontrolü gevşetilmedi. Çevrimdışı bölüm tamamlamaları standart 20 kupa verir, bayram ek kupası sonradan otomatik eklenmez. Premium çevrimdışı doğrulanamıyorsa normal ipucu envanteri kullanılır. Doğrulanmış hesap engeli hâlâ uygulanır; bakım/minimum sürüm kontrolleri yalnızca güncel çevrimiçi ayarlarla uygulanır. Bulut çakışması yerel oyunu durdurmaz; kayıtları eşitlemeden cihaz değiştirmeyin veya uygulamayı silmeyin.
