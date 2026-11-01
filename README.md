@@ -81,3 +81,12 @@ Bu cihaz görünümü cihazda kalan son 100 kaydı toplar; eski sürümlerde yer
 Ölçek notu: Bu yaklaşım var olan verileri değiştirmeden küçük oyuncu topluluğunda doğru toplamları sağlar, fakat Dünya yenilendiğinde tüm oyun belgeleri okunur (Firestore okuma maliyeti artar). Veri büyürse sunucuda işlem kimliğiyle tekilleştirilmiş toplamları tutan bir Cloud Function/arka uç ve eski veriler için kontrollü toplu aktarım gerekir. Böyle bir servis bu sürümde dağıtılmamıştır.
 
 59 birim testi ve üretim derlemesi geçti; çok sayfalı toplama, aynı ad/farklı UID, yeniden adlandırma, bozuk kayıtlar ve sayfa hatalarında kısmi sonuç göstermeme test edildi. Canlı Firestore yönetim erişimi olmadan gerçek oyuncu verileri burada okunmadı.
+
+## 1.6.0 — Günlük seri, Topluluk ve bildirimler
+
+- İstanbul gününe göre günlük seri, en uzun seri ve bugün tamamlanan alıştırmalar. Cihazda UID/misafir bazında ayrı tutulur; bulut eşitlemesi yoktur.
+- Profil’den izinle açılan Android hatırlatmaları: gece dahil yaklaşık üç saatte bir, **Yap** eylemi mevcut aşamaya götürür. Android pil/izin kısıtları nedeniyle kesin zaman garantisi yoktur.
+- Yeni **Topluluk** sekmesi gerçek sunucu kayıtlarından günlük alıştırma sayılarını gösterir; UID başına tek paylaşım ve tek beğeni. Kendi paylaşımını beğenme ve tekrar beğeni kurallarla engellenir.
+- Alıcıya özel gelen kutusu, okundu işareti, isteğe bağlı FCM beğeni bildirimi, açılış/koşullar/güncelleme ekranlarını bekleyen bildirim yönlendirmesi.
+- **Ek Firebase kurulumu zorunlu:** yeni `firestore.rules` ve `functions/` sunucusu ayrı yayınlanmalıdır. Kapalı uygulamaya beğeni gönderimi APK’yı yüklemekle tek başına çalışmaz. Blaze ücretlendirmesi ve fiziksel cihaz testleri dahil [kurulum rehberi](FIREBASE-SETUP.md).
+- Günlük sayılar da istemci skor bildirimlerine dayanır; gerçek oyun sunucuda doğrulanmaz. Kayıt okuma maliyetleri ölçekle artar. Bildirim teslimatı best effort, uygulama içi gelen kutusu ayrı kalıcıdır.

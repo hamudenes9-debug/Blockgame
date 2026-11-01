@@ -1,6 +1,6 @@
 {
   "name": "blokko",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,18 +9,22 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test",
     "android:sync": "npm run build && cap sync android",
-    "prebuild": "node scripts/firebase-config.mjs"
+    "prebuild": "node scripts/firebase-config.mjs",
+    "test:rules": "node --test tests/firestore-rules.test.js"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^7.5.0",
     "@capacitor/android": "^7.4.3",
     "@capacitor/browser": "^7.0.5",
     "@capacitor/core": "^7.4.3",
+    "@capacitor/local-notifications": "^7.0.7",
+    "@capacitor/push-notifications": "^7.0.7",
     "firebase": "^11.10.0",
     "lucide": "^0.468.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.3",
+    "@firebase/rules-unit-testing": "^4.0.1",
     "vite": "^6.1.0"
   },
   "overrides": {

@@ -1,6 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function todayInTurkey() {
+      let t = request.time + duration.value(3, 'h');
+      return string(t.year()) + '-' + (t.month() < 10 ? '0' : '') + string(t.month())
+        + '-' + (t.day() < 10 ? '0' : '') + string(t.day());
+    }
+    function todayStartMillis() {
+      return (request.time + duration.value(3, 'h')).date().toMillis() - 10800000;
+    }
+    // Daily activity is derived from existing public wordScores; likes are
+    // immutable and addressed by authenticated sender UID (one per day/player).
+    match /communityLikes/{day}/players/{targetUid}/likes/{fromUid} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.auth.uid == fromUid
+        && fromUid != targetUid
+        && day == todayInTurkey()
+        && request.resource.data.keys().hasOnly(['fromUid','toUid','day','scoreId','createdAt'])
+        && request.resource.data.fromUid == fromUid
+        && request.resource.data.toUid == targetUid
+        && request.resource.data.day == day
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.scoreId is string
+        && request.resource.data.scoreId.matches('^[A-Za-z0-9_-]{1,150}$')
+        && exists(/databases/$(database)/documents/wordScores/$(request.resource.data.scoreId))
+        && get(/databases/$(database)/documents/wordScores/$(request.resource.data.scoreId)).data.uid == targetUid
+        && get(/databases/$(database)/documents/wordScores/$(request.resource.data.scoreId)).data.mode == 'word'
+        && get(/databases/$(database)/documents/wordScores/$(request.resource.data.scoreId)).data.date >= todayStartMillis()
+        && get(/databases/$(database)/documents/wordScores/$(request.resource.data.scoreId)).data.date < todayStartMillis() + 86400000;
+      allow update, delete: if false;
+    }
+    // Private device tokens; no client can read or register another user's token.
+    match /users/{uid}/devices/{deviceId} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['token','platform','updatedAt'])
+        && request.resource.data.token is string
+        && request.resource.data.token.size() > 0
+        && request.resource.data.token.size() <= 4096
+        && request.resource.data.platform == 'android'
+        && request.resource.data.updatedAt == request.time;
+    }
+    // Only the Admin SDK/Cloud Function creates inbox messages.
+    match /userNotifications/{uid}/items/{notificationId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        && request.resource.data.read == true;
+      allow create, delete: if false;
+    }
     // New word-game leaderboard; old shooter scores remain separate.
     match /wordScores/{scoreId} {
       allow read: if true;

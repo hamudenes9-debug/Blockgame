@@ -59,3 +59,11 @@ export async function getScores(){
 
 
 export async function getSessionUser(){if(!auth)return null;await withTimeout(auth.authStateReady(),5000);return auth.currentUser;}
+
+// Shared authenticated access for community and private notification settings.
+export async function requireCloudUser(){
+ if(!auth||!db)throw cloudError('not-configured');
+ await withTimeout(auth.authStateReady());
+ if(!auth.currentUser)throw cloudError('unauthenticated');
+ return {db,user:auth.currentUser};
+}

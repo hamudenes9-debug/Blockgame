@@ -39,6 +39,10 @@ jobs:
           cat firebase-fingerprints.txt >> "$GITHUB_STEP_SUMMARY"
       - run: npm ci
       - run: npm test
+      - run: npm ci --prefix functions
+      - run: npm --prefix functions run check
+      - name: Verify Firestore access rules in an isolated emulator
+        run: npx --yes firebase-tools@15.34.2 emulators:exec --only firestore --project demo-kelime-seyyahi "npm run test:rules"
       - run: npm run android:sync
       - run: chmod +x android/gradlew && cd android && ./gradlew assembleDebug
       - name: Verify APK signer matches Firebase Android client
@@ -78,4 +82,4 @@ jobs:
             echo "Release $TAG already exists. Bump the version for a new public release."
             exit 1
           fi
-          gh release create "$TAG" Kelime-Seyyahi.apk Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --title "Kelime Seyyahı $VERSION" --notes "Android test sürümü. Mevcut uygulamanın üzerine yükleyin. Dünya sıralaması hesap başına tek satır ve tüm kayıtlı puanların toplamı olarak güncellendi. 24 Türkçe kelime bulmacası, harf birleştirme, seyahat rotaları, altın ve ipucu mağazası, Google girişi ve GitHub sürüm kontrolü. Blokko.apk eski güncelleme istemcileri için aynı dosyanın takma adıdır. Dünya sıralaması için wordScores Firestore kuralları yayınlanmalıdır. Altın ve ilerleme cihazda saklanır. Destek: Tirezteknoloji@gmail.com."
+          gh release create "$TAG" Kelime-Seyyahi.apk Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --title "Kelime Seyyahı $VERSION" --notes "Android test sürümü. Mevcut uygulamanın üzerine yükleyin. Günlük seri, gerçek günlük etkinliklerden Topluluk ve Profil’den açılan yaklaşık 3 saatlik Yap eylemli Android hatırlatmaları eklendi. Beğeniler için yeni firestore.rules yayınlanmalı; uygulama kapalıyken beğeni bildirimleri ayrıca Firebase Cloud Functions/FCM kurulumu (Blaze) gerektirir. APK yayını sunucuyu otomatik kurmaz. Kurulum: FIREBASE-SETUP.md. 24 Türkçe kelime bulmacası, harf birleştirme, seyahat rotaları, altın ve ipucu mağazası, Google girişi ve GitHub sürüm kontrolü. Blokko.apk eski güncelleme istemcileri için aynı dosyanın takma adıdır. Dünya sıralaması için wordScores Firestore kuralları yayınlanmalıdır. Altın ve ilerleme cihazda saklanır. Destek: Tirezteknoloji@gmail.com."

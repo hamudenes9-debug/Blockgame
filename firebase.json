@@ -1,0 +1,26 @@
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "community",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.log",
+        "test"
+      ]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  }
+}

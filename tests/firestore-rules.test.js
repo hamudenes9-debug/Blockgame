@@ -1,0 +1,43 @@
+import test from 'node:test';
+import {readFileSync} from 'node:fs';
+import {dayWindow} from '../shared/practice.js';
+
+test('Firestore rules: immutable daily likes, private tokens/inbox and existing scores', {skip:!process.env.FIRESTORE_EMULATOR_HOST,timeout:60000},async()=>{
+ const {initializeTestEnvironment,assertSucceeds,assertFails}=await import('@firebase/rules-unit-testing');
+ const {doc,getDoc,setDoc,updateDoc,deleteDoc,serverTimestamp}=await import('firebase/firestore');
+ const env=await initializeTestEnvironment({projectId:'demo-kelime-seyyahi',firestore:{rules:readFileSync(new URL('../firestore.rules',import.meta.url),'utf8')}});
+ try{
+ await env.clearFirestore();const {day,start}=dayWindow();
+ await env.withSecurityRulesDisabled(async context=>{const db=context.firestore();await setDoc(doc(db,'wordScores/today'),{uid:'recipient',mode:'word',name:'Ümit',score:100,date:Date.now()});await setDoc(doc(db,'wordScores/yesterday'),{uid:'recipient',mode:'word',name:'Ümit',score:100,date:start-1});await setDoc(doc(db,'userNotifications/recipient/items/notice'),{body:'Bir seyyah seni beğendi.',day,read:false,createdAt:serverTimestamp()});});
+ const sender=env.authenticatedContext('sender').firestore(),recipient=env.authenticatedContext('recipient').firestore(),other=env.authenticatedContext('other').firestore(),guest=env.unauthenticatedContext().firestore();
+ const path=`communityLikes/${day}/players/recipient/likes/sender`,data={fromUid:'sender',toUid:'recipient',day,scoreId:'today',createdAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(sender,path),data));
+ await assertFails(setDoc(doc(sender,path),data));
+ await assertFails(deleteDoc(doc(sender,path)));
+ await assertFails(setDoc(doc(other,path),data));
+ await assertFails(setDoc(doc(guest,path),data));
+ await assertSucceeds(getDoc(doc(recipient,path)));
+ await assertFails(setDoc(doc(recipient,`communityLikes/${day}/players/recipient/likes/recipient`),{...data,fromUid:'recipient'}));
+ await assertFails(setDoc(doc(other,`communityLikes/${day}/players/recipient/likes/other`),{...data,fromUid:'other',scoreId:'yesterday'}));
+ await assertFails(setDoc(doc(other,`communityLikes/${day}/players/recipient/likes/other`),{...data,fromUid:'other',fromName:'Forged name'}));
+ await assertFails(setDoc(doc(other,`communityLikes/2099-01-01/players/recipient/likes/other`),{...data,fromUid:'other',day:'2099-01-01'}));
+ await assertFails(setDoc(doc(sender,`communityLikes/${day}/players/other/likes/sender`),{...data,toUid:'other'}));
+ const devicePath='users/recipient/devices/test-device',token={token:'private-token',platform:'android',updatedAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(recipient,devicePath),token));
+ await assertSucceeds(getDoc(doc(recipient,devicePath)));
+ await assertFails(getDoc(doc(other,devicePath)));
+ await assertFails(setDoc(doc(other,devicePath),token));
+ await assertFails(deleteDoc(doc(other,devicePath)));
+ await assertSucceeds(deleteDoc(doc(recipient,devicePath)));
+ const inboxPath='userNotifications/recipient/items/notice';
+ await assertSucceeds(getDoc(doc(recipient,inboxPath)));
+ await assertSucceeds(updateDoc(doc(recipient,inboxPath),{read:true}));
+ await assertFails(updateDoc(doc(recipient,inboxPath),{body:'forged'}));
+ await assertFails(deleteDoc(doc(recipient,inboxPath)));
+ await assertFails(setDoc(doc(sender,'userNotifications/recipient/items/fake'),{body:'spam',read:false}));
+ await assertFails(getDoc(doc(other,inboxPath)));
+ await assertSucceeds(getDoc(doc(guest,'wordScores/today')));
+ await assertSucceeds(setDoc(doc(sender,'wordScores/own'),{uid:'sender',name:'Sender',score:100,mode:'word',date:Date.now()}));
+ await assertFails(updateDoc(doc(sender,'wordScores/own'),{score:200}));
+ }finally{await env.cleanup();}
+});
