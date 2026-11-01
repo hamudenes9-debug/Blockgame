@@ -48,3 +48,7 @@ Hata durumunda:
 - **Yayım sonucu doğrulanamadı:** duyuru zaten ulaşmış olabilir; oyun içindeki listeyi kontrol et. Başarı mesajı olmadan yayımlandığını varsayma.
 
 Komutu kaldırmak için `.bashrc` içindeki `# Kelime Seyyahi /Duyuru command v1` bloğunu ve fonksiyonunu kaldırabilirsin. Mevcut terminalde `unset -f /Duyuru` komutu fonksiyonu kapatır; yayımlanmış duyuruları silmez.
+
+## Telefon bildirimi de göndermek için
+
+Güncel kurucu `/bildirim 'Metin'` ve `/Bildirim 'Metin'` komutlarını da yükler. Bu ayrı komut oyun içi duyuruya ek olarak kayıtlı Android cihazlarına FCM push gönderir. `/Duyuru` davranışı değişmez. Önceki kurulumu yaptıysan yeni kaynak kimliğiyle bir kez yeniden kur. Detaylar ve teslimat sınırları: [BILDIRIM-REHBERI.md](BILDIRIM-REHBERI.md).

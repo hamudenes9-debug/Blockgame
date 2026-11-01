@@ -1,7 +1,7 @@
 # Source in Google Cloud Shell Bash: source install-duyuru.sh COMMIT_SHA
 # /Duyuru is a Bash function, not a file installed into the root directory.
 _ks_install_duyuru() {
-  local ref="${1:-}" directory="$HOME/.local/share/kelime-seyyahi" temporary
+  local ref="${1:-}" directory="$HOME/.local/share/kelime-seyyahi" temporary name
   if [[ ! "$ref" =~ ^[0-9a-f]{40}$ ]]; then
     printf '%s\n' 'Kurulum için geçerli sabit kaynak kimliği gerekli.' >&2
     return 1
@@ -11,16 +11,22 @@ _ks_install_duyuru() {
     return 1
   }
   mkdir -p "$directory" || return 1
-  temporary=$(mktemp "$directory/.duyuru.XXXXXX") || return 1
-  if ! curl -fsSL "https://raw.githubusercontent.com/hamudenes9-debug/Blockgame/$ref/admin-tools/duyuru.py" -o "$temporary"; then
-    rm -f "$temporary"
-    return 1
-  fi
-  if ! python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8").read())' "$temporary"; then
-    rm -f "$temporary"
-    return 1
-  fi
-  chmod 600 "$temporary" && mv "$temporary" "$directory/duyuru.py" || return 1
+  temporary=$(mktemp -d "$directory/.commands.XXXXXX") || return 1
+  for name in duyuru.py bildirim.py; do
+    if ! curl -fsSL "https://raw.githubusercontent.com/hamudenes9-debug/Blockgame/$ref/admin-tools/$name" -o "$temporary/$name"; then
+      rm -rf "$temporary"
+      return 1
+    fi
+    if ! python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8").read())' "$temporary/$name"; then
+      rm -rf "$temporary"
+      return 1
+    fi
+    chmod 600 "$temporary/$name" || return 1
+  done
+  for name in duyuru.py bildirim.py; do
+    mv "$temporary/$name" "$directory/$name" || return 1
+  done
+  rmdir "$temporary" || return 1
   if ! grep -Fq '# Kelime Seyyahi /Duyuru command v1' "$HOME/.bashrc" 2>/dev/null; then
     cat >> "$HOME/.bashrc" <<'BLOCK' || return 1
 
@@ -30,10 +36,26 @@ function /Duyuru() {
 }
 BLOCK
   fi
+  if ! grep -Fq '# Kelime Seyyahi /bildirim command v1' "$HOME/.bashrc" 2>/dev/null; then
+    cat >> "$HOME/.bashrc" <<'BLOCK' || return 1
+
+# Kelime Seyyahi /bildirim command v1
+function /bildirim() {
+  python3 "$HOME/.local/share/kelime-seyyahi/bildirim.py" "$@"
+}
+function /Bildirim() {
+  /bildirim "$@"
+}
+BLOCK
+  fi
+  function /bildirim() {
+    python3 "$HOME/.local/share/kelime-seyyahi/bildirim.py" "$@"
+  }
+  function /Bildirim() { /bildirim "$@"; }
   function /Duyuru() {
     python3 "$HOME/.local/share/kelime-seyyahi/duyuru.py" "$@"
   }
-  printf '%s\n' 'KURULDU. Örnek: /Duyuru "Merhaba seyyahlar!"' 'Yeni Cloud Shell Bash oturumlarında da kullanılabilir. Kurulum duyuru göndermez.'
+  printf '%s\n' 'KURULDU: /Duyuru ve /bildirim komutları hazır.' 'Yeni Cloud Shell Bash oturumlarında da kullanılabilir. Kurulum duyuru göndermez.'
 }
 if _ks_install_duyuru "$@"; then
   unset -f _ks_install_duyuru
