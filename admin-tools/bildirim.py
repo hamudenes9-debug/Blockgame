@@ -11,7 +11,7 @@ import sys
 import threading
 import urllib.request
 import urllib.error
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 import duyuru
 
 ROOT = 'https://firestore.googleapis.com/v1/projects/' + duyuru.PROJECT + '/databases/(default)/documents'
@@ -26,14 +26,18 @@ def request_json(url, token, body, method='POST', opener=urllib.request.urlopen)
         return json.load(response)
 
 
-def device_pages(token, opener=urllib.request.urlopen):
+def device_pages(token, opener=urllib.request.urlopen, uid=None):
+    if uid is not None:
+        from yonetim import valid_uid
+        valid_uid(uid)
+    parent = ROOT if uid is None else ROOT + '/users/' + quote(uid, safe='')
     cursor = None
     while True:
-        query = {'from': [{'collectionId': 'devices', 'allDescendants': True}],
+        query = {'from': [{'collectionId': 'devices', 'allDescendants': uid is None}],
                  'orderBy': [{'field': {'fieldPath': '__name__'}, 'direction': 'ASCENDING'}], 'limit': PAGE_SIZE}
         if cursor:
             query['startAt'] = {'values': [{'referenceValue': cursor}], 'before': False}
-        rows = request_json(ROOT + ':runQuery', token, {'structuredQuery': query}, opener=opener)
+        rows = request_json(parent + ':runQuery', token, {'structuredQuery': query}, opener=opener)
         if not isinstance(rows, list):
             raise ValueError('Geçersiz cihaz sorgusu yanıtı.')
         documents = [row['document'] for row in rows if isinstance(row, dict) and 'document' in row]
@@ -48,13 +52,15 @@ def device_pages(token, opener=urllib.request.urlopen):
         cursor = next_cursor
 
 
-def device_token(document):
+def device_token(document, uid=None):
     prefix = 'projects/' + duyuru.PROJECT + '/databases/(default)/documents/'
     name = document.get('name', '')
     if not name.startswith(prefix):
         return None
     path = name[len(prefix):].split('/')
     if len(path) != 4 or path[0] != 'users' or path[2] != 'devices' or not path[1] or not path[3]:
+        return None
+    if uid is not None and path[1] != uid:
         return None
     fields = document.get('fields', {})
     value = fields.get('token', {}).get('stringValue')
@@ -87,12 +93,16 @@ def send_one(device, notice, token, stopped, opener=urllib.request.urlopen):
         return 'uncertain'
 
 
-def dispatch(notice, token, opener=urllib.request.urlopen, workers=5):
+def dispatch(notice, token, opener=urllib.request.urlopen, workers=5, uid=None):
+    if uid is not None:
+        from yonetim import valid_uid
+        valid_uid(uid)
     identifier = notice['id']
     now = datetime.now(timezone.utc).isoformat()
     # A failed/uncertain reservation aborts BEFORE any push is sent.
     request_json(ROOT + '/notificationDeliveries?' + urlencode({'documentId': identifier}), token,
-        {'fields': {'status': {'stringValue': 'sending'}, 'source': {'stringValue': 'cloud-shell'},
+        {'fields': {'status': {'stringValue': 'sending'}, 'source': {'stringValue': 'cloud-shell-test' if uid is not None else 'cloud-shell'},
+                    **({'targetUid': {'stringValue': uid}} if uid is not None else {}),
                     'startedAt': {'timestampValue': now}}}, opener=opener)
     counts = collections.Counter(accepted=0, failed=0, uncertain=0, skipped=0)
     seen = set()
@@ -100,10 +110,10 @@ def dispatch(notice, token, opener=urllib.request.urlopen, workers=5):
     scan_complete = False
     try:
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            for documents in device_pages(token, opener):
+            for documents in device_pages(token, opener, uid):
                 targets = []
                 for document in documents:
-                    target = device_token(document)
+                    target = device_token(document, uid)
                     if target and target not in seen:
                         seen.add(target)
                         targets.append(target)

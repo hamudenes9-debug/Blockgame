@@ -41,3 +41,7 @@ Anasayfadaki Duyurular & Etkinlikler kartında **2× Altın + 2× Kupa** ve kala
 Spark planı korunur; ücretsiz kotalar ve bağlantı sınırları geçerlidir. Komut FCM/push göndermez. İstersen ayrıca `/bildirim '30 dakika 2× altın ve kupa etkinliği başladı!'` kullan; bu ayrı bir işlemdir.
 
 Eski uygulamalar çevrimiçi kontrolde güncelleme ister; eski çevrimdışı APK uzaktan kilitlenmez. E-posta/şifre/token paylaşma. Gerçek canlı etkinlik ve fiziksel cihaz teslimi otomatik test kapsamında değildir.
+
+## Ek süre
+
+Güncel Cloud Shell araçlarında `/event uzat 15`, aktif etkinliğin mevcut bitişine 15 dakika ekler; başlangıcı/kimliği korur. `ONAY event-uzat-15` ister. [Güvenlik, sınırlar ve ağ gecikmesi notları](YONETIM-KOMUTLARI.md#etkinlik-uzatma).

@@ -51,8 +51,12 @@ def control(client, action, reader=input, now=None):
 
 
 def main(args=None):
+    args = sys.argv[1:] if args is None else args
+    if args and args[0]=='uzat':
+        from ek_komutlar import main as extra_main
+        return extra_main(['event-uzat',*args[1:]])
     parser = argparse.ArgumentParser(prog='/event', description='Dakika cinsinden 2× altın ve kupa etkinliği. Örnek: /event 30')
-    parser.add_argument('action', nargs='?', default='durum', help='1–10080 dakika, durum veya kapat')
+    parser.add_argument('action', nargs='?', default='durum', help='1–10080 dakika, durum, kapat veya uzat DAKIKA')
     options = parser.parse_args(sys.argv[1:] if args is None else args)
     try:
         action = options.action

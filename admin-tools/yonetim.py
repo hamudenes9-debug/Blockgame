@@ -16,6 +16,17 @@ HELP = '''Komutlar:
 /bakım aç 'mesaj'               Bakımı aç (/bakim ac da kullanılabilir)
 /bakım kapat | durum | github   Bakımı kapat, oku veya GitHub'a devret
 /event 30                      30 dakika 2× altın/kupa (durum veya kapat da kullanılabilir)
+/event uzat 15                 Aktif etkinliğin bitişine 15 dakika ekle (onay)
+/premium liste                 Aktif Premium kayıtları (sayfalı)
+/premium bitenler 7            Önümüzdeki 7 günde bitecek Premium (sayfalı)
+/oyuncu-bul 'isim'             Hesap adında ara (sayfalı)
+/duyuru-duzenle KIMLIK 'metin'  Duyuru metnini değiştir (onay, yeni push yok)
+/duyuru-onizle 'metin'          Yerel metin/sınır önizlemesi; yayımlamaz
+/arsiv-temizle                 Süresi biten duyurulardan seçip kaldır (onay)
+/bildirim-test UID 'metin'      Yalnız seçilen hesabın kayıtlı cihazlarına test (onay)
+/bildirim-durum KIMLIK         Kayıtlı FCM gönderim sonuçları; teslimat kanıtı değil
+/ayar-yedekle                  Seçili canlı ayarları yerelde 0600 dosyaya yedekle
+/sistem-kontrol                Ayar, IAM, API ve Rules yayımı için salt okunur kontrol
 /premium ver UID 365            365 gün ekle (onay gerekir)
 /premium durum UID             Premium durumunu oku
 /premium iptal UID             Premium'u kapat (onay gerekir)
@@ -24,7 +35,9 @@ HELP = '''Komutlar:
 /duyuru-sil KIMLIK             Duyuruyu kaldır (onay gerekir)
 /durum                        Canlı ayar özetini oku
 /yardım                       Bu liste (/yardim da kullanılabilir)
-Verme, iptal ve silme için istenen ONAY metnini terminalde yaz.
+Değişiklik ve test gönderiminde istenen ONAY metnini terminalde yaz.
+Sayfalı komutlar: en fazla 200 kayıt/sayfa; devam için --sayfa 'TOKEN'.
+Her komutun --help seçeneği vardır. /event uzat mevcut 1.12.0/şema 6 desteği ister.
 Kurulum hiçbir canlı veriyi değiştirmez. Hedef proje: blockgame-46ae9.
 '''
 
@@ -207,9 +220,13 @@ def player(client, uid):
 
 
 def main(args=None):
+    args = sys.argv[1:] if args is None else args
+    if len(args)>=2 and args[0]=='premium' and args[1] in ('liste','bitenler'):
+        from ek_komutlar import main as extra_main
+        return extra_main(['premium-'+args[1],*args[2:]])
     parser = argparse.ArgumentParser(prog='Seyyah komutları', description=HELP, formatter_class=argparse.RawTextHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
-    p = sub.add_parser('premium'); p.add_argument('action', choices=['ver', 'durum', 'iptal']); p.add_argument('uid'); p.add_argument('days', nargs='?', type=int)
+    p = sub.add_parser('premium'); p.add_argument('action', choices=['ver', 'durum', 'iptal', 'liste', 'bitenler']); p.add_argument('uid'); p.add_argument('days', nargs='?', type=int)
     p = sub.add_parser('oyuncu'); p.add_argument('uid')
     p = sub.add_parser('duyuru-sil'); p.add_argument('identifier')
     for name in ('duyurular', 'durum', 'yardım', 'yardim'):

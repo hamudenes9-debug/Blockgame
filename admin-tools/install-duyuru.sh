@@ -12,7 +12,7 @@ _ks_install_duyuru() {
   }
   mkdir -p "$directory" || return 1
   temporary=$(mktemp -d "$directory/.commands.XXXXXX") || return 1
-  for name in duyuru.py bildirim.py bakim.py yonetim.py event.py; do
+  for name in duyuru.py bildirim.py bakim.py yonetim.py event.py ek_komutlar.py; do
     if ! curl -fsSL "https://raw.githubusercontent.com/hamudenes9-debug/Blockgame/$ref/admin-tools/$name" -o "$temporary/$name"; then
       rm -rf "$temporary"
       return 1
@@ -23,7 +23,7 @@ _ks_install_duyuru() {
     fi
     chmod 600 "$temporary/$name" || return 1
   done
-  for name in duyuru.py bildirim.py bakim.py yonetim.py event.py; do
+  for name in duyuru.py bildirim.py bakim.py yonetim.py event.py ek_komutlar.py; do
     mv "$temporary/$name" "$directory/$name" || return 1
   done
   rmdir "$temporary" || return 1
@@ -87,6 +87,28 @@ function /event() { python3 "$HOME/.local/share/kelime-seyyahi/event.py" "$@"; }
 BLOCK
   fi
   function /event() { python3 "$HOME/.local/share/kelime-seyyahi/event.py" "$@"; }
+  if ! grep -Fq '# Kelime Seyyahi extra commands v1' "$HOME/.bashrc" 2>/dev/null; then
+    cat >> "$HOME/.bashrc" <<'BLOCK' || return 1
+
+# Kelime Seyyahi extra commands v1
+function /oyuncu-bul() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" oyuncu-bul "$@"; }
+function /duyuru-duzenle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" duyuru-duzenle "$@"; }
+function /duyuru-onizle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" duyuru-onizle "$@"; }
+function /arsiv-temizle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" arsiv-temizle "$@"; }
+function /bildirim-test() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" bildirim-test "$@"; }
+function /bildirim-durum() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" bildirim-durum "$@"; }
+function /ayar-yedekle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" ayar-yedekle "$@"; }
+function /sistem-kontrol() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" sistem-kontrol "$@"; }
+BLOCK
+  fi
+function /oyuncu-bul() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" oyuncu-bul "$@"; }
+function /duyuru-duzenle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" duyuru-duzenle "$@"; }
+function /duyuru-onizle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" duyuru-onizle "$@"; }
+function /arsiv-temizle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" arsiv-temizle "$@"; }
+function /bildirim-test() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" bildirim-test "$@"; }
+function /bildirim-durum() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" bildirim-durum "$@"; }
+function /ayar-yedekle() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" ayar-yedekle "$@"; }
+function /sistem-kontrol() { python3 "$HOME/.local/share/kelime-seyyahi/ek_komutlar.py" sistem-kontrol "$@"; }
   function /bakım() {
     python3 "$HOME/.local/share/kelime-seyyahi/bakim.py" "$@"
   }

@@ -39,3 +39,7 @@ Oyun içi kopya `delivery: in-app` işaretini korur: push bu komut tarafından g
 - Gerçek fiziksel cihaz teslimatı bu kodun taklitli API testleriyle doğrulanmış sayılmaz. Önce kendi izin verilmiş Android cihazında kısa bir mesajla dene; bu komutun tüm kayıtlı Android cihazlarına gönderdiğini unutma.
 
 Kaldırmak için `.bashrc` içindeki `# Kelime Seyyahi /bildirim command v1` bloğunu ve iki fonksiyonu kaldır. Açık terminalde `unset -f /bildirim /Bildirim` kullanabilirsin. Gönderilmiş bildirimler bu işlemle geri alınmaz.
+
+## Tek hesaba test ve gönderim kaydı
+
+`/bildirim-test UID 'metin'` yalnız seçilen hesabın kayıtlı Android cihazlarını hedefler; genel duyuru eklemez ve onay ister. `/bildirim-durum KIMLIK` kayıtlı sonucu okur; FCM kabulü fiziksel teslim kanıtı değildir. [Yönetim rehberi](YONETIM-KOMUTLARI.md).
