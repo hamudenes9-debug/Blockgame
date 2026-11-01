@@ -86,3 +86,6 @@ Yayıncı günde bir kez Diyanet’in mevcut ve sonraki yıl takvimini okumayı 
 Premium verme/kapatma/uzatma: **[PREMIUM-GUIDE.md](PREMIUM-GUIDE.md)**.
 
 Canlıya almadan önce fiziksel Android cihazında: yeni kurulum + anonim kontrol; Google/GitHub/Yahoo oturumu; internet kesme/geri gelme; Firebase Disable account; maintenance kodu; minimum sürüm; Premium grant/expiry/revoke; ipucusuz görev; aynı ödülü iki cihazdan alma; FCM uygulama açık/kapalı/tıklama ve izin reddi senaryolarını kontrol et. Yerel taklitli UI ve Firestore emülatörü, üretim OAuth/FCM veya gerçek ödeme doğrulamasının kanıtı değildir.
+
+### Kural değerlendirme sınırı
+Yayımlayıcı `operations/current.levelIds` alanını sabit 1–124 listesi olarak üretir. Kurallar bölüm kimliklerini bu yalnızca yöneticinin yazabildiği listeyle doğrular; uzun liste sabitlerini her atomik işlemde yeniden değerlendirerek Firestore’un 1.000 ifade sınırını aşmaz. Bu alanı elle silmeyin/değiştirmeyin; eksikse yayım işini yeniden çalıştırın.

@@ -46,7 +46,7 @@ service cloud.firestore {
           && elapsed>=d.day-1 && d.grantedAt==request.time
           && d.gold==40+week*10 && d.hints==(d.day%5==0?3:1)
           && d.levels is list && d.levels.size()<=124 && d.levels.toSet().size()==d.levels.size()
-          && d.levels.hasOnly([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124])
+          && d.levels.hasOnly(get(/databases/$(database)/documents/operations/current).data.levelIds)
           && d.words is int && d.words>=0 && d.words<=d.levels.size()*7
           && d.clean is int && d.clean>=0 && d.clean<=d.levels.size()
           && (d.day%3==2?d.words>=target:(d.day%3==0?d.clean>=target:d.levels.size()>=target))
@@ -67,18 +67,23 @@ service cloud.firestore {
         && festivalList(getAfter(/databases/$(database)/documents/playerSaves/$(uid)).data.state.trophies).hasAny([request.resource.data.level]);
       allow update, delete: if false;
     }
+    function questTransition(id, old, next, added) {
+      let receipt = getAfter(/databases/$(database)/documents/questRewards/$(request.auth.uid)/days/$(string(id))).data;
+      return added.size()==1 && added.hasAny([id]) && receipt.grantedAt==request.time
+        && next.wallet.gold==old.wallet.gold+receipt.gold
+        && next.wallet.hints==old.wallet.hints+receipt.hints;
+    }
     function rewardTransition() {
       let old=resource.data.state;
       let next=request.resource.data.state;
       let event=request.resource.data.get('event', {'type':'save','id':0});
       let added=next.journey.claimed.toSet().difference(old.journey.claimed.toSet());
-      let bonus=festivalList(next.trophies).toSet().difference(festivalList(old.trophies).toSet());
+      let previousBonus=festivalList(old.trophies);
+      let nextBonus=festivalList(next.trophies);
+      let bonus=nextBonus.toSet().difference(previousBonus.toSet());
       return next.journey.claimed.hasAll(old.journey.claimed)
-        && festivalList(next.trophies).hasAll(festivalList(old.trophies))
-        && (event.type=='quest' ? (added.size()==1 && added.hasAny([event.id])
-          && getAfter(/databases/$(database)/documents/questRewards/$(request.auth.uid)/days/$(string(event.id))).data.grantedAt==request.time
-          && next.wallet.gold == old.wallet.gold + getAfter(/databases/$(database)/documents/questRewards/$(request.auth.uid)/days/$(string(event.id))).data.gold
-          && next.wallet.hints == old.wallet.hints + getAfter(/databases/$(database)/documents/questRewards/$(request.auth.uid)/days/$(string(event.id))).data.hints) : added.size()==0)
+        && nextBonus.hasAll(previousBonus)
+        && (event.type=='quest' ? questTransition(event.id,old,next,added) : added.size()==0)
         && (event.type=='festival' ? (bonus.size()==1 && bonus.hasAny([event.id])
           && getAfter(/databases/$(database)/documents/festivalRewards/$(request.auth.uid)/levels/$(string(event.id))).data.grantedAt==request.time) : bonus.size()==0);
     }
@@ -99,14 +104,15 @@ service cloud.firestore {
         && a.hat is int && a.hat >= 0 && a.hat <= 5;
     }
     function validTrophies(t) {
+      let festival=festivalList(t);
       return t is map && t.keys().hasOnly(['season','claimed','prestige','festival'])
         && t.season == 1 && t.claimed is list && t.claimed.size() <= 124
         && t.claimed.toSet().size() == t.claimed.size()
-        && t.claimed.hasOnly([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124])
+        && t.claimed.hasOnly(get(/databases/$(database)/documents/operations/current).data.levelIds)
         && t.prestige is int && t.prestige >= 0
-        && t.prestige * 1000 <= (t.claimed.size() + festivalList(t).size()) * 20
-        && festivalList(t) is list && festivalList(t).size()<=124
-        && festivalList(t).toSet().size()==festivalList(t).size() && t.claimed.hasAll(festivalList(t));
+        && t.prestige * 1000 <= (t.claimed.size() + festival.size()) * 20
+        && festival is list && festival.size()<=124
+        && festival.toSet().size()==festival.size() && t.claimed.hasAll(festival);
     }
     function validJourney(j) {
       return j is map && j.keys().hasOnly(['start','active','claimed','entries'])
