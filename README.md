@@ -1,6 +1,6 @@
 # Kelime Seyyahı
 
-> **Güncel sürüm 1.11.0:** Premium artık bölüm/görev altınında 2×, ilk bölüm tamamlamasında 2× kupa (bayramda 80) ve 12 kalıcı avatar öğesi sunar. Sınırsız harf aç kaldırıldı. Normal bölümler çevrimdışı oynanır. **Yeni şema 5 kurallarını [LIVE-SETUP.md](LIVE-SETUP.md) ile yayımla.** Premium verme yöntemi değişmedi: [PREMIUM-GUIDE.md](PREMIUM-GUIDE.md).
+> **Güncel sürüm 1.11.1:** Premium artık bölüm/görev altınında 2×, ilk bölüm tamamlamasında 2× kupa (bayramda 80) ve 12 kalıcı avatar öğesi sunar. Sınırsız harf aç kaldırıldı. Normal bölümler çevrimdışı oynanır. **Yeni şema 5 kurallarını [LIVE-SETUP.md](LIVE-SETUP.md) ile yayımla.** Premium verme yöntemi değişmedi: [PREMIUM-GUIDE.md](PREMIUM-GUIDE.md).
 
 
 > **Önceki sürüm 1.9.0:** 124 bölüm / 16 durak, 30 günlük keşif defteri, görev ödülleri, 6 avatar hediyesi ve 8 rozet. **Yeni Firestore kurallarını yayımla ve tüm cihazları güncelle.** Kurulum ve kayıt koruma: [MONTH-UPDATE.md](MONTH-UPDATE.md).

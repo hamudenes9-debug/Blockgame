@@ -38,13 +38,13 @@ node admin-tools/premium.mjs GERCEK_OYUNCU_UID revoke
 
 ## Satış koşulları
 
-Mağazada **99,99 TL / yıl**, yeni bölümün ilk tamamlamasında 2× altın/kupa, görevlerde 2× altın, 12 kalıcı avatar öğesi, hesapla kullanım, manuel aktivasyon ve otomatik yenileme olmaması açıkça yazılır. 1.11.0 ile sınırsız Harf aç kaldırıldı; normal harf açma ipucu/altın harcar ve ipucu kullanımı sayılır; ipucusuz göreve sayılmaz. Başka avantaj vaat edilmez.
+Mağazada **99,99 TL / yıl**, yeni bölümün ilk tamamlamasında 2× altın/kupa, görevlerde 2× altın, 12 kalıcı avatar öğesi, hesapla kullanım, manuel aktivasyon ve otomatik yenileme olmaması açıkça yazılır. 1.11.1 ile sınırsız Harf aç kaldırıldı; normal harf açma ipucu/altın harcar ve ipucu kullanımı sayılır; ipucusuz göreve sayılmaz. Başka avantaj vaat edilmez.
 
 Uygulama ödeme işlemez; kart/banka bilgisi toplamaz. Ücret kabul etmeden önce satıcı bilgileri, ödeme yöntemi, hizmet başlangıcı, yasal cayma/iade ve gerekli satış belgelerini senin tamamlaman gerekir. Gizlilik/koşullar metni, kanuni tüketici haklarını kaldırmaz. Bir mağazada (ör. Google Play) yayımlanacaksa o mağazanın ödeme politikaları ayrıca değerlendirilmelidir; bu paket mevcut GitHub APK dağıtımına yöneliktir.
 
-## 1.11.0: yeni Premium paketi
+## 1.11.1: yeni Premium paketi
 Fiyat ve mevcut `premium/{uid}` bitiş tarihleri değişmez. Yeni bölümün ilk tamamlaması 2× altın, 40 kupa verir. Bayramla birleşirse 80 kupa olur. Görev altını 2×, görev ipucu ödülü aynı kalır. Çarpanlar çevrimiçi onay gerektirir; tekrar oynama ve eski bakiyeler katlanmaz. Onaydan önce süre biterse ek bölüm ödülü geri alınabilir; standart ilerleme korunur.
 
 Aktif Premium ilk kez doğrulanınca `premiumCosmetics/{uid}` açılış makbuzu oluşturulur. 4 saç, 4 kıyafet ve 4 şapka bu hesap için kalıcı açılır; yenileme gerekmez. Süre bitse bile diğer cihazda aynı hesapla geri yüklenir. Eski görev avatarları ayrı kalır.
 
-**Bu özellikler için 1.11.0 Firestore kuralları gerekir.** Önceki alıcılara paket değişikliğini bildir; önceki sınırsız harf açma vaadini sessizce sürüyormuş gibi sunma. Satış/iade yükümlülüklerini ayrıca değerlendir.
+**Bu özellikler için 1.11.1 Firestore kuralları gerekir.** Önceki alıcılara paket değişikliğini bildir; önceki sınırsız harf açma vaadini sessizce sürüyormuş gibi sunma. Satış/iade yükümlülüklerini ayrıca değerlendir.

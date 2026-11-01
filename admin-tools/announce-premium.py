@@ -8,7 +8,7 @@ import urllib.request
 import urllib.error
 from urllib.parse import urlencode
 
-NOTICE = {'id': 'premium-benefits-111', 'title': 'Premium yenilendi: 2× ödül ve kalıcı avatarlar!', 'body': '1.11.0 ile yıllık 99,99 TL Premium paketi yenilendi. Sınırsız Harf aç kaldırıldı. Yeni bölümün ilk tamamlamasında 2× altın ve 40 kupa; bayramla birleşince 80 kupa. Günlük keşif görevlerinde 2× altın, aynı ipucu ödülü. Premium aktifken açılan 4 saç, 4 kıyafet ve 4 şapka süre bitince de kalır. Ödül çarpanları çevrimiçi sunucu onayı ister; eski bakiyeleri katlamaz. Mevcut Premium bitiş tarihin değişmez. Satın alma ve önceki paketle ilgili sorular: tirezteknoloji@gmail.com.', 'startsAt': '2026-11-01T16:09:39.411369+00:00', 'endsAt': '2026-12-01T16:09:39.411369+00:00'}
+NOTICE = {'id': 'premium-benefits-111', 'title': 'Premium yenilendi: 2× ödül ve kalıcı avatarlar!', 'body': '1.11.1 ile yıllık 99,99 TL Premium paketi yenilendi. Sınırsız Harf aç kaldırıldı. Yeni bölümün ilk tamamlamasında 2× altın ve 40 kupa; bayramla birleşince 80 kupa. Günlük keşif görevlerinde 2× altın, aynı ipucu ödülü. Premium aktifken açılan 4 saç, 4 kıyafet ve 4 şapka süre bitince de kalır. Ödül çarpanları çevrimiçi sunucu onayı ister; eski bakiyeleri katlamaz. Mevcut Premium bitiş tarihin değişmez. Satın alma ve önceki paketle ilgili sorular: tirezteknoloji@gmail.com.', 'startsAt': '2026-11-01T16:09:39.411369+00:00', 'endsAt': '2026-12-01T16:09:39.411369+00:00'}
 
 def field(value):
     if isinstance(value, str):
@@ -22,7 +22,7 @@ def main():
     with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as response:
         document = json.load(response)
     if int(document.get('fields',{}).get('minimumSchema',{}).get('integerValue',0)) < 5:
-        raise ValueError('Önce 1.11.0 kurulumunu tamamla.')
+        raise ValueError('Önce 1.11.1 kurulumunu tamamla.')
     old = document.get("fields", {}).get("announcements", {}).get("arrayValue", {}).get("values", [])
     notices = [n for n in old if n.get("mapValue", {}).get("fields", {}).get("id", {}).get("stringValue") not in [NOTICE["id"], "premium-sales-20261101"]]
     notices.append(field(NOTICE))

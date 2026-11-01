@@ -24,7 +24,7 @@ class UpgradeTest(unittest.TestCase):
             calls.append((url,req))
             if isinstance(req,str):
                 self.assertTrue(url.startswith(upgrade.SOURCE))
-                return io.BytesIO(b'{"version":"1.11.0"}' if url.endswith('package.json') else b"rules_version = '2'; data.version == 5")
+                return io.BytesIO(b'{"version":"1.11.1"}' if url.endswith('package.json') else b"rules_version = '2'; data.version == 5")
             self.assertEqual(req.get_header('Authorization'),'Bearer mock-token')
             if req.method=='GET':
                 body=document if '/documents/' in url else {'name':'projects/blockgame-46ae9/releases/cloud.firestore','rulesetName':'previous'}

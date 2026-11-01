@@ -1,3 +1,5 @@
+import {settlePremiumGold} from './premium-rewards.js';
+import {cleanAccount} from './account-state.js';
 import {LEVELS} from './word-levels.js';
 import {serverClock} from './live-access.js';
 import {trophyCount} from './trophies.js';
@@ -12,7 +14,7 @@ async function commitOnce(uid,base,writeId,state){const {db,user,ref}=await refF
  const newPremium=(state.trophies.premium||[]).filter(n=>!remote?.state?.trophies?.premium?.includes(n));
  for(const level of newBonus.filter(n=>!newPremium.includes(n)))tx.set(doc(db,'festivalRewards',uid,'levels',String(level)),{uid,level,grantedAt:serverTimestamp()});
  for(const level of newPremium)tx.set(doc(db,'premiumRewards',uid,'levels',String(level)),{uid,level,gold:remote?.state.wallet.claimed.includes(level)?0:LEVELS[level-1].words.length*5+25,festival:state.trophies.premiumFestival?.includes(level)||false,grantedAt:serverTimestamp()});
- const data={version:5,...(newBonus.length||newPremium.length?{event:{type:'level',id:newBonus[0]||newPremium[0]}}:{}),revision:base+1,writeId,state,updatedAt:serverTimestamp()};tx.set(ref,data);tx.set(doc(db,'trophyPlayers',uid),{uid,name:(user.displayName||'Oyuncu').slice(0,100),trophies:trophyCount(state.trophies),prestige:state.trophies.prestige,avatar:state.avatar,updatedAt:serverTimestamp()});return data;}));}
+ const data={version:5,...(newBonus.length||newPremium.length?{event:{type:'level',id:newBonus[0]||newPremium[0]}}:{}),revision:base+1,writeId,state:settlePremiumGold(state,remote?.state),updatedAt:serverTimestamp()};tx.set(ref,data);tx.set(doc(db,'trophyPlayers',uid),{uid,name:(user.displayName||'Oyuncu').slice(0,100),trophies:trophyCount(state.trophies),prestige:state.trophies.prestige,avatar:state.avatar,updatedAt:serverTimestamp()});return data;}));}
 
 export async function commitAccount(uid,base,writeId,state){
  try{return await commitOnce(uid,base,writeId,state);}catch(error){
@@ -27,10 +29,10 @@ export async function commitAccount(uid,base,writeId,state){
    const unconfirmed=(state.trophies[key]||[]).filter(n=>!remote?.state.trophies[key]?.includes(n));
    const receipts=await Promise.all(unconfirmed.map(n=>getDocFromServer(doc(db,collection,uid,'levels',String(n)))));
    if(receipts.some(r=>r.exists()))throw error;
-   if(unconfirmed.length){removed=true;revised.trophies[key]=(revised.trophies[key]||[]).filter(n=>!unconfirmed.includes(n));if(key==='premium')for(const n of unconfirmed)if(!remote?.state.wallet.claimed.includes(n))revised.wallet.gold=Math.max(0,revised.wallet.gold-(LEVELS[n-1].words.length*5+25));}
+   if(unconfirmed.length){removed=true;revised.trophies[key]=(revised.trophies[key]||[]).filter(n=>!unconfirmed.includes(n));}
   }
   if(!removed)throw error;
   revised.trophies.premiumFestival=(revised.trophies.premiumFestival||[]).filter(n=>revised.trophies.premium?.includes(n)&&revised.trophies.festival?.includes(n));
-  return commitOnce(uid,base,writeId,revised);
+  return commitOnce(uid,base,writeId,cleanAccount(revised));
  }
 }
