@@ -114,7 +114,7 @@ service cloud.firestore {
         return d.keys().hasOnly(['uid','day','gold','hints','levels','words','clean','grantedAt'])
           && d.uid==uid && d.day is int && d.day>=1 && d.day<=30 && string(d.day)==day
           && elapsed>=d.day-1 && d.grantedAt==request.time
-          && d.gold==(40+week*10)*(activePremium(uid)?2:1)*(rewardEventActive()?2:1) && d.hints==(d.day%5==0?3:1)
+          && (d.gold==40+week*10 || (d.gold==(40+week*10)*2 && (activePremium(uid)||rewardEventActive())) || (d.gold==(40+week*10)*4 && activePremium(uid) && rewardEventActive())) && d.hints==(d.day%5==0?3:1)
           && d.levels is list && d.levels.size()<=124 && d.levels.toSet().size()==d.levels.size()
           && d.levels.hasOnly(get(/databases/$(database)/documents/operations/current).data.levelIds)
           && d.words is int && d.words>=0 && d.words<=d.levels.size()*7
@@ -172,8 +172,7 @@ service cloud.firestore {
         && next.trophies.claimed.hasAll(old.trophies.claimed) && next.wallet.claimed.hasAll(old.wallet.claimed)
         && (!old.get('cosmeticsPremium',false) || next.get('cosmeticsPremium',false))
         && (event.type=='quest' ? questTransition(event.id,old,next,added) : added.size()==0)
-        && eventTransition(old.trophies,next.trophies,event)
-        && (old.trophies==next.trophies || levelTransition(old.trophies,next.trophies,event));
+        && (old.trophies==next.trophies || (eventTransition(old.trophies,next.trophies,event) && levelTransition(old.trophies,next.trophies,event)));
     }
     function todayInTurkey() {
       let t = request.time + duration.value(3, 'h');
@@ -197,10 +196,11 @@ service cloud.firestore {
       let festival=t.get('festival',[]);
       let premium=t.get('premium',[]);
       let stacked=t.get('premiumFestival',[]);
+      let events=t.get('events',{});
+      let points=t.get('eventPoints',0);
       return t is map && t.keys().hasOnly(['season','claimed','prestige','festival','premium','premiumFestival','events','eventPoints'])
-        && t.get('events',{}) is map && t.get('events',{}).size()<=124
-        && t.get('eventPoints',0) is int && t.get('eventPoints',0)>=0 && t.get('eventPoints',0)%20==0
-        && t.get('eventPoints',0)<=t.get('events',{}).size()*80
+        && events is map && events.size()<=124
+        && points is int && points>=0 && points%20==0 && points<=events.size()*80
         && t.season == 1 && t.claimed is list && t.claimed.size() <= 124
         && t.claimed.toSet().size() == t.claimed.size()
         && t.claimed.hasOnly(get(/databases/$(database)/documents/operations/current).data.levelIds)
@@ -224,13 +224,10 @@ service cloud.firestore {
         && ((a.hat>=6 && premium) || a.hat < 4 || (a.hat == 4 && count >= 15) || (a.hat == 5 && count >= 30));
     }
     // Private, versioned UID account backup. No paid server required.
-    function unchanged(key) {
-      return exists(/databases/$(database)/documents/playerSaves/$(request.auth.uid))
-        && request.resource.data.state.get(key,null)==resource.data.state.get(key,null);
-    }
-    function validPlayerSave() {
+    function validPlayerSave(old) {
       let data = request.resource.data;
       let state = data.state;
+      let changed = state.diff(old).affectedKeys();
       return data.keys().hasOnly(['version','revision','writeId','state','updatedAt','event'])
         && data.version == 6
         && data.revision is int && data.revision >= 1
@@ -248,19 +245,19 @@ service cloud.firestore {
         && state.wallet.hints is int && state.wallet.hints >= 0 && state.wallet.hints <= 1000000
         && state.wallet.claimed is list && state.wallet.claimed.size() <= 124
         && state.wallet.migrated == true
-        && (unchanged('trophies') || validTrophies(state.trophies)) && (unchanged('avatar') || validAvatar(state.avatar))
-        && (unchanged('journey') || validJourney(state.journey))
-        && (unchanged('avatar') && unchanged('cosmeticsPremium') || ownedAvatar(state.avatar, state.journey.claimed.size(),state.get('cosmeticsPremium',false)))
+        && (!changed.hasAny(['trophies']) || validTrophies(state.trophies)) && (!changed.hasAny(['avatar']) || validAvatar(state.avatar))
+        && (!changed.hasAny(['journey']) || validJourney(state.journey))
+        && (!changed.hasAny(['avatar']) && !changed.hasAny(['cosmeticsPremium']) || ownedAvatar(state.avatar, state.journey.claimed.size(),state.get('cosmeticsPremium',false)))
         && state.get('cosmeticsPremium',false) is bool
         && (!state.get('cosmeticsPremium',false) || exists(/databases/$(database)/documents/premiumCosmetics/$(request.auth.uid)));
     }
     match /playerSaves/{uid} {
       allow read: if currentClient() && request.auth.uid == uid;
       allow create: if currentClient() && request.auth.uid == uid
-        && validPlayerSave() && request.resource.data.state.trophies.get('events',{}).size()==0 && request.resource.data.revision == 1
+        && validPlayerSave({}) && request.resource.data.state.trophies.get('events',{}).size()==0 && request.resource.data.revision == 1
         && trophyUnits(request.resource.data.state.trophies)==request.resource.data.state.trophies.claimed.size();
       allow update: if currentClient() && request.auth.uid == uid
-        && validPlayerSave() && ((resource.data.version < 4 && request.resource.data.state.trophies.get('events',{}).size()==0 && trophyUnits(request.resource.data.state.trophies)==request.resource.data.state.trophies.claimed.size()) || rewardTransition()) && request.resource.data.revision == resource.data.revision + 1;
+        && validPlayerSave(resource.data.state) && ((resource.data.version < 4 && request.resource.data.state.trophies.get('events',{}).size()==0 && trophyUnits(request.resource.data.state.trophies)==request.resource.data.state.trophies.claimed.size()) || rewardTransition()) && request.resource.data.revision == resource.data.revision + 1;
       allow delete: if false;
     }
     // Public trophy ranking mirrors the owner's private save in the same transaction.
