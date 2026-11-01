@@ -43,7 +43,20 @@ jobs:
       - run: npm ci --prefix functions
       - run: npm --prefix functions run check
       - name: Verify Firestore access rules in an isolated emulator
-        run: npx --yes firebase-tools@15.34.2 emulators:exec --only firestore --project demo-kelime-seyyahi "npm run test:rules"
+        run: |
+          set -o pipefail
+          npx --yes firebase-tools@15.34.2 emulators:exec --only firestore --project demo-kelime-seyyahi "npm run test:rules" 2>&1 | tee rules-output.log
+      - name: Publish rule diagnostics on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const summary=fs.existsSync('rules-output.log')?fs.readFileSync('rules-output.log','utf8').slice(-50000):'Rules step did not produce a log.';
+          const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/check-runs`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({name:'Firestore rule diagnostics',head_sha:process.env.GITHUB_SHA,status:'completed',conclusion:'neutral',output:{title:'Firestore emulator diagnostics',summary:'```text\n'+summary+'\n```'}})});
+          if(!response.ok)throw Error('Diagnostic check could not be published: '+response.status);
+          JS
       - run: npm run android:sync
       - run: chmod +x android/gradlew && cd android && ./gradlew assembleDebug
       - name: Verify APK signer matches Firebase Android client
