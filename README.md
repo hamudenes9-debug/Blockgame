@@ -116,3 +116,11 @@ Topluluk ekranı mevcut beğenileri doğrudan Firestore’dan dinler: son 7 İst
 - Mevcut 24 aşamanın ID’leri korundu. Bartın, Bolu, Zonguldak ve Kocaeli’ye onar yeni aşama ve özgün vektör sahne: toplam **64 aşama / 10 bölge**.
 - Tamamlama ekranında puan yok; kupa ve altın gösterilir. İlk açılışta “Puan sistemi değişti” + Tamam bilgilendirmesi hesap/misafir başına bu cihazda bir kez çıkar.
 - **Güncel Firestore kuralları zorunlu**, tüm cihazlar 1.8.0’a güncellenmeli. Eski şema yazmaları reddedilir. Şema 2 ve herkese açık kupa kaydı tek transaction’da yazılır. Spark desteklenir; yeni bir ücretli sunucu veya composite index gerekmez. [Kurulum](FIREBASE-SETUP.md).
+
+## 1.8.1 — GitHub ile giriş
+
+- Mevcut Google/misafir girişlerinin yanına GitHub eklendi; profil ve oturum geri yükleme sağlayıcıyı doğru gösterir.
+- Android Firebase OAuth → GitHub credential → JS Firebase oturumu. Google Credential Manager/fallback ve mevcut imza/paket korunur. GitHub yalnızca temel profil + `user:email` ister; repo izni yoktur.
+- Token veya Client secret uygulama koduna/özel yerel kayda yazılmaz. Çift giriş tıklamaları engellenir; iptal ve sağlayıcı çakışmaları ayrı açıklanır.
+- UID bazlı kayıt korunur; **Google ve GitHub hesapları otomatik birleştirilmez**. Mevcut ilerleme için aynı sağlayıcı/hesap kullanılmalı. Firestore kuralları değişmedi.
+- Firebase/GitHub sağlayıcı ayarları, callback ve güvenli secret rotasyonu: [GITHUB-LOGIN.md](GITHUB-LOGIN.md). Canlı OAuth/gerçek Android doğrulaması kullanıcı cihazında tamamlanmalıdır.

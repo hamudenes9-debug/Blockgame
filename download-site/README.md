@@ -17,6 +17,6 @@ python3 -m http.server 4174 --bind 0.0.0.0 --directory download-site
 - 10 rota sekmesi klavye okları, Home/End ile kullanılabilir. Sık sorulan sorular yerel `details` öğeleriyle açılır.
 - Görseller mevcut projeye ait özgün vektör sahnelerdir. Telefon tasviri temsilidir; aktif bir oyun değildir.
 - Dış font isteği, takip betiği, form, analiz veya e-posta toplama yoktur.
-- Oyun bilgileri 1.8.0 içeriğine dayanır: 64 aşama, 10 bölge. İçerik değiştiğinde metin ve rota sayıları da güncellenmelidir.
+- Oyun bilgileri 1.8.1 içeriğine dayanır: 64 aşama, 10 bölge. İçerik değiştiğinde metin ve rota sayıları da güncellenmelidir.
 
 Instrument Serif ve DM Sans fontları yerel sunulur; lisansları `assets/fonts/` içindedir.

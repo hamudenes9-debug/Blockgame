@@ -8,7 +8,7 @@ export function describeCloudError(error, writing=false){
   const code=String(error?.code||'unknown').replace(/^firestore\//,'').replace(/[^\w/-]/g,'').slice(0,70);
   const messages={
     'permission-denied':'Firestore erişimi reddetti. Firebase → Firestore Database → Rules bölümünde güncel playerSaves, trophyPlayers ve topluluk kuralları kontrol edilmeli.',
-    'unauthenticated':'Google oturumu bulunamadı veya geçersiz. Profil bölümünden yeniden Google ile giriş yap.',
+    'unauthenticated':'Hesap oturumu bulunamadı veya geçersiz. Profil bölümünden yeniden Google veya GitHub ile giriş yap.',
     'not-found':'Firestore veritabanı bulunamadı. Firebase projesinde (default) Firestore veritabanını kontrol et.',
     'failed-precondition':'Firestore yapılandırması hazır değil. Veritabanı ve gerekli dizinler kontrol edilmeli.',
     'unavailable':'Firestore sunucusuna ulaşılamıyor. İnternet bağlantısını, VPN/DNS ayarlarını ve veritabanının etkinliğini kontrol et.',
