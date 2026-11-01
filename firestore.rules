@@ -37,10 +37,10 @@ service cloud.firestore {
       allow read: if freshAuth() && request.auth.uid == uid;
       function validReward() {
         let d=request.resource.data;
-        let week=int((d.day-1)/7);
+        let week=int((d.day - 1) / 7);
         let start=get(/databases/$(database)/documents/journeyClocks/$(uid)).data.startedAt;
         let elapsed=((request.time+duration.value(3,'h')).date().toMillis() - (start+duration.value(3,'h')).date().toMillis()) / 86400000;
-        let target=d.day%3==2?10+week*3: (d.day%3==0?1+int(week/2):2+int(week/2));
+        let target=d.day%3==2?10+week*3: (d.day%3==0?1+int(week / 2):2+int(week / 2));
         return d.keys().hasOnly(['uid','day','gold','hints','levels','words','clean','grantedAt'])
           && d.uid==uid && d.day is int && d.day>=1 && d.day<=30 && string(d.day)==day
           && elapsed>=d.day-1 && d.grantedAt==request.time
