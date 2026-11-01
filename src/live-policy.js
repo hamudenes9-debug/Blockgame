@@ -8,7 +8,7 @@ export function validatePolicy(raw){if(raw?.format!==1||compareVersions(raw.mini
 export const activeAnnouncements=(p,now)=>(p?.announcements||[]).filter(a=>a.startsAt<=now&&now<a.endsAt);
 export const activeHoliday=(p,now)=>p?.holidays.find(h=>h.startsAt<=now&&now<h.endsAt)||null;
 export function premiumActive(record,now){const expiry=typeof record?.expiresAt?.toMillis==='function'?record.expiresAt.toMillis():record?.expiresAt;return record?.enabled===true&&Number.isFinite(expiry)&&Number.isFinite(now)&&expiry>now;}
-export function accessDecision({policy,version,connected,leaseAge,configAge,blocked,bypass=false}){if(blocked)return blocked==='session'?'session':'disabled';if(!connected||!policy||leaseAge>12000||configAge>120000)return 'ready';if(compareVersions(version,policy.minimumVersion)<0||policy.minimumSchema>4)return 'update';if(policy.maintenance.enabled&&!bypass)return 'maintenance';return 'ready';}
+export function accessDecision({policy,version,connected,leaseAge,configAge,blocked,bypass=false}){if(blocked)return blocked==='session'?'session':'disabled';if(!connected||!policy||leaseAge>12000||configAge>120000)return 'ready';if(compareVersions(version,policy.minimumVersion)<0||policy.minimumSchema>5)return 'update';if(policy.maintenance.enabled&&!bypass)return 'maintenance';return 'ready';}
 export function createServerClock(tick=()=>performance.now()){let base=NaN,at=0;return {accept(ms){if(!Number.isFinite(ms))throw Error('Sunucu saati alınamadı');base=ms;at=tick();},now(){return base+Math.max(0,tick()-at);},age(){return Number.isFinite(base)?tick()-at:Infinity;}};}
 
 // Online privileges remain fail-closed; ordinary local play does not depend on them.

@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {awardTrophies,trophyCount,prestigeUp,cleanTrophies} from '../src/trophies.js';
+import {awardPuzzle,spendHint} from '../src/word-wallet.js';
+import {AVATAR_OPTIONS,avatarSVG,avatarAvailable} from '../src/avatar.js';
+import {cleanAccount} from '../src/account-state.js';
+test('Premium doubles new stage gold once; ordinary hints still cost inventory',()=>{const level={id:1,words:['AB','BA']},first=awardPuzzle({},level,true);assert.equal(first.earned,70);assert.equal(awardPuzzle(first.wallet,level,true).earned,0);assert.equal(spendHint(first.wallet).wallet.gold,50);assert.equal(awardPuzzle({},level).earned,35);});
+test('Premium and festival combine to 80 cups, persist and never replay',()=>{for(const [holiday,premium,total] of [[false,false,20],[false,true,40],[true,false,40],[true,true,80]]){const r=awardTrophies({},1,holiday,premium);assert.equal(r.earned,total);assert.equal(trophyCount(r.trophies),total);assert.equal(awardTrophies(r.trophies,1,true,true).earned,0);assert.equal(trophyCount(cleanTrophies(r.trophies)),total);}let t={};for(let i=1;i<=13;i++)t=awardTrophies(t,i,true,true).trophies;assert.equal(trophyCount(prestigeUp(t).trophies),40);});
+test('12 additional cosmetics require permanent unlock, not current subscription status',()=>{for(const key of ['hair','outfit','hat']){assert.equal(AVATAR_OPTIONS[key].length,10);for(let i=6;i<=9;i++){assert.equal(avatarAvailable(key,i,30,false),false);assert.equal(avatarAvailable(key,i,0,true),true);assert.equal(cleanAccount({avatar:{[key]:i}}).avatar[key],0);assert.equal(cleanAccount({cosmeticsPremium:true,avatar:{[key]:i}}).avatar[key],i);assert.doesNotMatch(avatarSVG({[key]:i}),/undefined|<script>/);}}});

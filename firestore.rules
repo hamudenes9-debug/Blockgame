@@ -6,7 +6,7 @@ service cloud.firestore {
         && request.auth.token.iat * 1000 >= request.time.toMillis() - 15000;
     }
     function currentClient() {
-      return freshAuth() && get(/databases/$(database)/documents/operations/current).data.minimumSchema <= 4;
+      return freshAuth() && get(/databases/$(database)/documents/operations/current).data.minimumSchema <= 5;
     }
     function festivalList(t) { return t.get('festival', []); }
     function windowActive(w, i) { return w.size() > i && request.time >= w[i].start && request.time < w[i].end; }
@@ -17,6 +17,36 @@ service cloud.firestore {
     }
     match /operations/current { allow read: if freshAuth(); allow write: if false; }
     match /premium/{uid} { allow read: if freshAuth() && request.auth.uid == uid; allow write: if false; }
+    function activePremium(uid) {
+      let path=/databases/$(database)/documents/premium/$(uid);
+      return request.auth.token.firebase.sign_in_provider != 'anonymous' && exists(path)
+        && get(path).data.enabled == true && get(path).data.expiresAt is timestamp
+        && get(path).data.expiresAt > request.time;
+    }
+    match /premiumCosmetics/{uid} {
+      allow read: if freshAuth() && request.auth.uid==uid;
+      allow create: if currentClient() && request.auth.uid==uid && activePremium(uid)
+        && request.resource.data.keys().hasOnly(['unlocked','grantedAt'])
+        && request.resource.data.unlocked==true && request.resource.data.grantedAt==request.time;
+      allow update, delete: if false;
+    }
+    match /premiumRewards/{uid}/levels/{level} {
+      function validPremiumReward() {
+        let d=request.resource.data;
+        let before=get(/databases/$(database)/documents/playerSaves/$(uid)).data.state;
+        let after=getAfter(/databases/$(database)/documents/playerSaves/$(uid)).data.state;
+        return d.keys().hasOnly(['uid','level','gold','festival','grantedAt'])
+          && d.uid==uid && d.level is int && d.level>=1 && d.level<=124 && string(d.level)==level
+          && d.grantedAt==request.time && d.festival is bool
+          && !before.trophies.claimed.hasAny([d.level])
+          && after.trophies.get('premium',[]).hasAny([d.level])
+          && d.gold==(before.wallet.claimed.hasAny([d.level])?0:25+5*after.progress[level].found.size())
+          && (d.festival ? holidayActive() && after.trophies.get('premiumFestival',[]).hasAny([d.level]) && festivalList(after.trophies).hasAny([d.level]) : !after.trophies.get('premiumFestival',[]).hasAny([d.level]));
+      }
+      allow read: if freshAuth() && request.auth.uid==uid;
+      allow create: if currentClient() && request.auth.uid==uid && activePremium(uid) && validPremiumReward();
+      allow update, delete: if false;
+    }
     match /journeyClocks/{uid} {
       allow read: if freshAuth() && request.auth.uid == uid;
       allow create: if currentClient() && request.auth.uid == uid
@@ -44,7 +74,7 @@ service cloud.firestore {
         return d.keys().hasOnly(['uid','day','gold','hints','levels','words','clean','grantedAt'])
           && d.uid==uid && d.day is int && d.day>=1 && d.day<=30 && string(d.day)==day
           && elapsed>=d.day-1 && d.grantedAt==request.time
-          && d.gold==40+week*10 && d.hints==(d.day%5==0?3:1)
+          && (d.gold==40+week*10 || (d.gold==(40+week*10)*2 && activePremium(uid))) && d.hints==(d.day%5==0?3:1)
           && d.levels is list && d.levels.size()<=124 && d.levels.toSet().size()==d.levels.size()
           && d.levels.hasOnly(get(/databases/$(database)/documents/operations/current).data.levelIds)
           && d.words is int && d.words>=0 && d.words<=d.levels.size()*7
@@ -70,22 +100,29 @@ service cloud.firestore {
     function questTransition(id, old, next, added) {
       let receipt = getAfter(/databases/$(database)/documents/questRewards/$(request.auth.uid)/days/$(string(id))).data;
       return added.size()==1 && added.hasAny([id]) && receipt.grantedAt==request.time
-        && next.wallet.gold==old.wallet.gold+receipt.gold
-        && next.wallet.hints==old.wallet.hints+receipt.hints;
+        && next.wallet.gold==(old.wallet.gold+receipt.gold>1000000000?1000000000:old.wallet.gold+receipt.gold)
+        && next.wallet.hints==(old.wallet.hints+receipt.hints>1000000?1000000:old.wallet.hints+receipt.hints);
+    }
+    function bonusTransition(key, collection, event) {
+      let before=resource.data.state.trophies.get(key,[]);
+      let after=request.resource.data.state.trophies.get(key,[]);
+      let added=after.toSet().difference(before.toSet());
+      return after.hasAll(before) && (added.size()==0 || (
+        event.type in ['level','festival'] && added.size()==1 && added.hasAny([event.id])
+        && getAfter(/databases/$(database)/documents/$(collection)/$(request.auth.uid)/levels/$(string(event.id))).data.grantedAt==request.time
+        && (key!='premiumFestival' || getAfter(/databases/$(database)/documents/$(collection)/$(request.auth.uid)/levels/$(string(event.id))).data.festival==true)));
     }
     function rewardTransition() {
       let old=resource.data.state;
       let next=request.resource.data.state;
       let event=request.resource.data.get('event', {'type':'save','id':0});
       let added=next.journey.claimed.toSet().difference(old.journey.claimed.toSet());
-      let previousBonus=festivalList(old.trophies);
-      let nextBonus=festivalList(next.trophies);
-      let bonus=nextBonus.toSet().difference(previousBonus.toSet());
       return next.journey.claimed.hasAll(old.journey.claimed)
-        && nextBonus.hasAll(previousBonus)
+        && (!old.get('cosmeticsPremium',false) || next.get('cosmeticsPremium',false))
         && (event.type=='quest' ? questTransition(event.id,old,next,added) : added.size()==0)
-        && (event.type=='festival' ? (bonus.size()==1 && bonus.hasAny([event.id])
-          && getAfter(/databases/$(database)/documents/festivalRewards/$(request.auth.uid)/levels/$(string(event.id))).data.grantedAt==request.time) : bonus.size()==0);
+        && bonusTransition('festival','festivalRewards',event)
+        && bonusTransition('premium','premiumRewards',event)
+        && bonusTransition('premiumFestival','premiumRewards',event);
     }
     function todayInTurkey() {
       let t = request.time + duration.value(3, 'h');
@@ -97,22 +134,25 @@ service cloud.firestore {
     }
     function validAvatar(a) {
       return a is map && a.keys().hasOnly(['hair','outfit','eyes','face','hat'])
-        && a.hair is int && a.hair >= 0 && a.hair <= 5
-        && a.outfit is int && a.outfit >= 0 && a.outfit <= 5
+        && a.hair is int && a.hair >= 0 && a.hair <= 9
+        && a.outfit is int && a.outfit >= 0 && a.outfit <= 9
         && a.eyes is int && a.eyes >= 0 && a.eyes <= 3
         && a.face is int && a.face >= 0 && a.face <= 3
-        && a.hat is int && a.hat >= 0 && a.hat <= 5;
+        && a.hat is int && a.hat >= 0 && a.hat <= 9;
     }
+    function trophyUnits(t) { return t.claimed.size()+t.get('festival',[]).size()+t.get('premium',[]).size()+t.get('premiumFestival',[]).size(); }
+    function validSubset(values, base) { return values is list && values.size()<=124 && values.toSet().size()==values.size() && base.hasAll(values); }
     function validTrophies(t) {
-      let festival=festivalList(t);
-      return t is map && t.keys().hasOnly(['season','claimed','prestige','festival'])
+      let festival=t.get('festival',[]);
+      let premium=t.get('premium',[]);
+      let stacked=t.get('premiumFestival',[]);
+      return t is map && t.keys().hasOnly(['season','claimed','prestige','festival','premium','premiumFestival'])
         && t.season == 1 && t.claimed is list && t.claimed.size() <= 124
         && t.claimed.toSet().size() == t.claimed.size()
         && t.claimed.hasOnly(get(/databases/$(database)/documents/operations/current).data.levelIds)
-        && t.prestige is int && t.prestige >= 0
-        && t.prestige * 1000 <= (t.claimed.size() + festival.size()) * 20
-        && festival is list && festival.size()<=124
-        && festival.toSet().size()==festival.size() && t.claimed.hasAll(festival);
+        && t.prestige is int && t.prestige >= 0 && t.prestige*1000<=trophyUnits(t)*20
+        && validSubset(festival,t.claimed) && validSubset(premium,t.claimed)
+        && validSubset(stacked,premium) && festival.hasAll(stacked);
     }
     function validJourney(j) {
       return j is map && j.keys().hasOnly(['start','active','claimed','entries'])
@@ -124,22 +164,22 @@ service cloud.firestore {
         && j.entries is map && j.entries.size() <= 30
         && j.entries.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30']);
     }
-    function ownedAvatar(a, count) {
-      return (a.hair < 4 || (a.hair == 4 && count >= 5) || (a.hair == 5 && count >= 20))
-        && (a.outfit < 4 || (a.outfit == 4 && count >= 10) || (a.outfit == 5 && count >= 25))
-        && (a.hat < 4 || (a.hat == 4 && count >= 15) || (a.hat == 5 && count >= 30));
+    function ownedAvatar(a, count, premium) {
+      return ((a.hair>=6 && premium) || a.hair < 4 || (a.hair == 4 && count >= 5) || (a.hair == 5 && count >= 20))
+        && ((a.outfit>=6 && premium) || a.outfit < 4 || (a.outfit == 4 && count >= 10) || (a.outfit == 5 && count >= 25))
+        && ((a.hat>=6 && premium) || a.hat < 4 || (a.hat == 4 && count >= 15) || (a.hat == 5 && count >= 30));
     }
     // Private, versioned UID account backup. No paid server required.
     function validPlayerSave() {
       let data = request.resource.data;
       let state = data.state;
       return data.keys().hasOnly(['version','revision','writeId','state','updatedAt','event'])
-        && data.version == 4
+        && data.version == 5
         && data.revision is int && data.revision >= 1
         && data.writeId is string && data.writeId.size() > 0 && data.writeId.size() <= 100
         && data.updatedAt == request.time
         && state is map
-        && state.keys().hasOnly(['stage','wallet','progress','records','streak','trophies','avatar','journey'])
+        && state.keys().hasOnly(['stage','wallet','progress','records','streak','trophies','avatar','journey','cosmeticsPremium'])
         && state.stage is int && state.stage >= 1 && state.stage <= 124
         && state.progress is map && state.progress.size() <= 124
         && state.records is list && state.records.size() == 0
@@ -151,14 +191,17 @@ service cloud.firestore {
         && state.wallet.claimed is list && state.wallet.claimed.size() <= 124
         && state.wallet.migrated == true
         && validTrophies(state.trophies) && validAvatar(state.avatar)
-        && validJourney(state.journey) && ownedAvatar(state.avatar, state.journey.claimed.size());
+        && validJourney(state.journey) && ownedAvatar(state.avatar, state.journey.claimed.size(),state.get('cosmeticsPremium',false))
+        && state.get('cosmeticsPremium',false) is bool
+        && (!state.get('cosmeticsPremium',false) || exists(/databases/$(database)/documents/premiumCosmetics/$(request.auth.uid)));
     }
     match /playerSaves/{uid} {
       allow read: if currentClient() && request.auth.uid == uid;
       allow create: if currentClient() && request.auth.uid == uid
-        && validPlayerSave() && request.resource.data.revision == 1;
+        && validPlayerSave() && request.resource.data.revision == 1
+        && trophyUnits(request.resource.data.state.trophies)==request.resource.data.state.trophies.claimed.size();
       allow update: if currentClient() && request.auth.uid == uid
-        && validPlayerSave() && ((resource.data.version < 4 && festivalList(request.resource.data.state.trophies).size()==0) || rewardTransition()) && request.resource.data.revision == resource.data.revision + 1;
+        && validPlayerSave() && ((resource.data.version < 4 && trophyUnits(request.resource.data.state.trophies)==request.resource.data.state.trophies.claimed.size()) || rewardTransition()) && request.resource.data.revision == resource.data.revision + 1;
       allow delete: if false;
     }
     // Public trophy ranking mirrors the owner's private save in the same transaction.
@@ -168,9 +211,9 @@ service cloud.firestore {
         let save = getAfter(/databases/$(database)/documents/playerSaves/$(uid)).data;
         return data.keys().hasOnly(['uid','name','trophies','prestige','avatar','updatedAt'])
           && data.uid == uid && data.name is string && data.name.size() <= 100
-          && data.updatedAt == request.time && save.version == 4
+          && data.updatedAt == request.time && save.version == 5
           && data.trophies is int
-          && data.trophies == (save.state.trophies.claimed.size() + festivalList(save.state.trophies).size()) * 20 - save.state.trophies.prestige * 1000
+          && data.trophies == trophyUnits(save.state.trophies) * 20 - save.state.trophies.prestige * 1000
           && data.prestige == save.state.trophies.prestige
           && data.avatar == save.state.avatar && validAvatar(data.avatar);
       }

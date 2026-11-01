@@ -12,8 +12,8 @@ export function cleanAccount(raw={}){
  const records=[]; // Retire all legacy points; never convert them into trophies.
 
  const s=raw.streak||{};const streak={lastDay:typeof s.lastDay==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s.lastDay)?s.lastDay:null,streak:number(s.streak,100000),best:number(s.best,100000),count:number(s.count,1000000)};
- const journey=cleanJourney(raw.journey),avatar=cleanAvatar(raw.avatar);for(const key of Object.keys(avatar))if(!avatarAvailable(key,avatar[key],journey.claimed.length))avatar[key]=0;
- return {stage:Math.max(1,number(raw.stage===64&&progress[64]?.completed?65:raw.stage,LEVELS.length)),wallet,progress,records,streak,trophies:cleanTrophies(raw.trophies),avatar,journey};
+ const journey=cleanJourney(raw.journey),avatar=cleanAvatar(raw.avatar);for(const key of Object.keys(avatar))if(!avatarAvailable(key,avatar[key],journey.claimed.length,raw.cosmeticsPremium===true))avatar[key]=0;
+ return {stage:Math.max(1,number(raw.stage===64&&progress[64]?.completed?65:raw.stage,LEVELS.length)),wallet,progress,records,streak,trophies:cleanTrophies(raw.trophies),avatar,journey,...(raw.cosmeticsPremium===true?{cosmeticsPremium:true}:{})};
 }
 export const accountKey=uid=>'seyyah-account-v1-'+(uid?'uid:'+uid:'guest');
 export const sameState=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
