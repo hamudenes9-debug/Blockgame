@@ -2,11 +2,33 @@
   "format": 1,
   "minimumVersion": "1.10.0",
   "minimumSchema": 4,
-  "maintenance": {"enabled": false, "message": "Oyunumuzu iyileştiriyoruz. Biraz sonra tekrar dene.", "until": ""},
+  "maintenance": {
+    "enabled": false,
+    "message": "Oyunumuzu iyileştiriyoruz. Biraz sonra tekrar dene.",
+    "until": ""
+  },
   "holidaysEnabled": true,
   "holidays": [
-    {"id":"ramazan-2026","title":"Ramazan Bayramı","startsAt":"2026-03-20T00:00:00+03:00","endsAt":"2026-03-23T00:00:00+03:00"},
-    {"id":"kurban-2026","title":"Kurban Bayramı","startsAt":"2026-05-27T00:00:00+03:00","endsAt":"2026-05-31T00:00:00+03:00"}
+    {
+      "id": "ramazan-2026",
+      "title": "Ramazan Bayramı",
+      "startsAt": "2026-03-20T00:00:00+03:00",
+      "endsAt": "2026-03-23T00:00:00+03:00"
+    },
+    {
+      "id": "kurban-2026",
+      "title": "Kurban Bayramı",
+      "startsAt": "2026-05-27T00:00:00+03:00",
+      "endsAt": "2026-05-31T00:00:00+03:00"
+    }
   ],
-  "announcements": []
+  "announcements": [
+    {
+      "id": "premium-sales-20261101",
+      "title": "Premium satışları başlamıştır!",
+      "body": "Premium Seyyah artık satışta! Yıllık 99,99 TL karşılığında Premium süresince sınırsız Harf aç özelliğini kullan; altın veya hazır ipucu harcama. Satın almak için Mağaza bölümünden iletişime geçebilir veya oyuncu UID’nle birlikte tirezteknoloji@gmail.com adresine yazabilirsin. Ödeme uygulama içinde alınmaz; satın alma doğrulandıktan sonra hesabın etkinleştirilir. Otomatik yenileme yoktur.",
+      "startsAt": "2026-11-01T15:14:35Z",
+      "endsAt": "2026-12-01T15:14:35Z"
+    }
+  ]
 }
