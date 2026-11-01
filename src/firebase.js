@@ -1,7 +1,8 @@
+import {collectScoreTotals} from './leaderboard.js';
 import {withTimeout} from './cloud-status.js';
 import {initializeApp} from 'firebase/app';
 import {getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut} from 'firebase/auth';
-import {getFirestore, collection, addDoc, query, orderBy, limit, getDocsFromServer} from 'firebase/firestore';
+import {getFirestore, collection, addDoc, query, orderBy, limit, startAfter, documentId, getDocsFromServer} from 'firebase/firestore';
 import {Capacitor} from '@capacitor/core';
 import {FirebaseAuthentication} from '@capacitor-firebase/authentication';
 import {describeAuthError} from './auth-errors.js';
@@ -43,9 +44,18 @@ export async function submitScore(score,mode){
 }
 export async function getScores(){
   if(!db)throw cloudError('not-configured');
-  // A world ranking must come from the server, never a local cached result.
-  const snapshot=await withTimeout(getDocsFromServer(query(collection(db,'wordScores'),orderBy('score','desc'),limit(20))));
-  return snapshot.docs.map(d=>d.data());
+  let active=true;
+  try{
+    const totals=await withTimeout(collectScoreTotals(async cursor=>{
+      const constraints=[orderBy(documentId()),limit(500)];
+      if(cursor)constraints.push(startAfter(cursor));
+      const snapshot=await getDocsFromServer(query(collection(db,'wordScores'),...constraints));
+      return {records:snapshot.docs.map(d=>({id:d.id,data:d.data()})),nextCursor:snapshot.size===500?snapshot.docs.at(-1).id:null};
+    },()=>active));
+    // Limit players only AFTER every stored game has contributed to totals.
+    return totals.slice(0,20);
+  }finally{active=false;}
 }
+
 
 export async function getSessionUser(){if(!auth)return null;await withTimeout(auth.authStateReady(),5000);return auth.currentUser;}

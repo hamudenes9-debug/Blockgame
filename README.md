@@ -45,7 +45,7 @@ Web girişini etkinleştirmek için `.env.example` dosyasını `.env.local` olar
 
 Kelime skorları artık **`wordScores`** koleksiyonuna gönderilir. Eski `scores` koleksiyonu blok oyununa aittir. **Firebase Console → Firestore Database → Rules bölümünde bu repodaki `firestore.rules` dosyasını yayınla.** Mevcut başka uygulama kuralların varsa silmeden birleştir. Bu oturumdan kurallar uzaktan yayınlanmamıştır. Yeni kural olmadan Google girişi çalışsa bile kelime skorları için `permission-denied` alınır.
 
-Sıralama sunucudan en yüksek 20 kelime skorunu okur (tek alan sıralaması, özel bileşik indeks gerekmez). Google oturumu olan kullanıcının adı, UID'si, puanı, modu ve tarihi yazılır. Kayıtlar herkese okunabilir. Oyun tamamlanınca yazılır; kullanıcı başına tek kayıt veya sunucuda hile doğrulaması henüz yoktur. Yerel skorlar otomatik geriye dönük yüklenmez. Okuma/yazma 12 saniyede sunucu onayı alamazsa açık hata/durum gösterir. Yazım zaman aşımı kaydın kesin başarısız olduğu anlamına gelmez.
+Dünya sıralaması tüm kelime skorlarını belge kimliği sırasıyla 500 kayıtlık sayfalarda okur, Firebase UID bazında toplar ve en yüksek toplam puana sahip 20 oyuncuyu gösterir. Önce 20 oyunu seçip sonra toplamaz; geçmişteki küçük puanlar da toplama dahildir. Özel bileşik indeks gerekmez. Google oturumu olan kullanıcının adı, UID'si, puanı, modu ve tarihi yazılır. Kayıtlar herkese okunabilir. Oyun tamamlanınca ayrı kayıt yazılır; bu geçmiş korunur, arayüzde her UID tek satır olarak gösterilir. Sunucuda hile doğrulaması henüz yoktur. Yerel skorlar otomatik geriye dönük yüklenmez. Okuma/yazma 12 saniyede sunucu onayı alamazsa açık hata/durum gösterir. Yazım zaman aşımı kaydın kesin başarısız olduğu anlamına gelmez.
 
 ## Koşullar, gizlilik ve destek
 
@@ -70,3 +70,14 @@ CI testleri, Android derlemesini ve **üretilen APK imzasının Firebase Android
 Yeni bir harf kutusu seçildiğinde kısa ve yumuşak, iki sinüs bileşenli bir ses çalar. Harf sayısıyla birlikte pentatonik notalar yükselir. Dokunma, sürükleme ve klavyeyle harf kutusu seçimi aynı yolu kullanır. Aynı kutunun üzerinde beklemek veya önceki harfe geri dönmek tekrar ses üretmez. Üstteki ses anahtarı hem harf hem doğru kelime sesini kapatır; tercih cihazda saklanır. Sesler Web Audio ile yerelde üretilir, internetten dosya indirilmez. Ses API'si yoksa veya tarayıcı sesi engelliyorsa oyun devam eder. Eşzamanlı ses sayısı sınırlandırılır ve biten düğümler serbest bırakılır.
 
 52 birim testi ve üretim derlemesi geçti. Ses seçimi, tekrar engelleme, sessiz mod, notalar, düğüm temizliği ve bloke edilmiş ses başlatma testleri eklendi. Gerçek cihazdaki hoparlör/ses seviyesi ayrıca denenmelidir.
+
+
+## 1.5.2 — Oyuncu başına toplam puan
+
+Dünya ekranında oyuncular isimleriyle değil Firebase UID'leriyle gruplanır. İsim değişikliği aynı hesabı bölmez; aynı isimli farklı hesaplar birleşmez. En yeni tarihli kayıt görünen adı belirler. Satırda toplam puan ve oyun adedi gösterilir. Tüm sayfalar başarıyla okunmadan kısmi bir sıralama gösterilmez; zaman aşımında sonraki sayfalara istek yapılmaz. Aynı belge kimliği iki sayfada görülürse bir kez sayılır. Eski kayıtlar silinmez; Firestore kurallarını veya Firebase yapılandırmasını değiştirmek gerekmez.
+
+Bu cihaz görünümü cihazda kalan son 100 kaydı toplar; eski sürümlerde yerel kayıtların UID alanı yoktu. Bunlar isimle gruplanır ve “Eski yerel kayıt” olarak etiketlenir; bir Google hesabına tahminen bağlanmaz. Yeni yerel kayıtlara UID eklenir. Dünya ekranındaki eski sunucu kayıtlarında UID zaten bulunduğu için bu belirsizlik yoktur.
+
+Ölçek notu: Bu yaklaşım var olan verileri değiştirmeden küçük oyuncu topluluğunda doğru toplamları sağlar, fakat Dünya yenilendiğinde tüm oyun belgeleri okunur (Firestore okuma maliyeti artar). Veri büyürse sunucuda işlem kimliğiyle tekilleştirilmiş toplamları tutan bir Cloud Function/arka uç ve eski veriler için kontrollü toplu aktarım gerekir. Böyle bir servis bu sürümde dağıtılmamıştır.
+
+59 birim testi ve üretim derlemesi geçti; çok sayfalı toplama, aynı ad/farklı UID, yeniden adlandırma, bozuk kayıtlar ve sayfa hatalarında kısmi sonuç göstermeme test edildi. Canlı Firestore yönetim erişimi olmadan gerçek oyuncu verileri burada okunmadı.
