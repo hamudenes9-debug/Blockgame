@@ -1,5 +1,5 @@
 import contextlib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import importlib.util
 import io
 from pathlib import Path
@@ -32,4 +32,12 @@ class EventTest(unittest.TestCase):
             token.assert_not_called()
     def test_expiry_status_is_read_only(self):
         c=Fake();m.control(c,'1',lambda _:'ONAY event-1',NOW);m.control(c,'durum',now=datetime(2026,11,1,0,1,tzinfo=timezone.utc));self.assertIn('SONA ERMİŞ',self.output.getvalue());self.assertEqual(len(c.writes),1)
+    def test_full_duration_starts_after_confirmation(self):
+        c=Fake()
+        with patch.object(m,'datetime') as clock:
+            clock.now.side_effect=[NOW,NOW+timedelta(minutes=15)]
+            m.control(c,'30',lambda _:'ONAY event-30')
+        value=data(c.doc)['rewardEvent']
+        self.assertEqual(value['startsAt'],'2026-11-01T00:15:00+00:00')
+        self.assertEqual(value['endsAt'],'2026-11-01T00:45:00+00:00')
 if __name__=='__main__':unittest.main()
