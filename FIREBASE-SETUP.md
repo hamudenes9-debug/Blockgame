@@ -1,5 +1,10 @@
 # Kelime Seyyahı 1.8.0 — Google hesabına bağlı bulut kaydı ve ücretsiz beğeniler
 
+## Güncel 1.9.0 — Kuralların yeniden yayımlanması gerekiyor
+
+Özel kayıt şeması 3 oldu: 124 aşama, görev takvimi ve yeni avatar seçenekleri. **Bu sürümün `firestore.rules` dosyasının tamamını Firestore → Rules → Publish ile yayımla; tüm cihazları 1.9.0’a yükselt.** Eski şema 2 yazımları yeni kurallarda reddedilir. Firebase Authentication sağlayıcılarında değişiklik yok. Ayrıntılı güvenli geçiş: [MONTH-UPDATE.md](MONTH-UPDATE.md). Aşağıdaki eski sürüm notları tarihsel kurulum bilgisidir.
+
+
 ## 1.8.1 — Google’a ek GitHub girişi
 
 GitHub ile giriş eklendi. Kurulum, callback adresi, açığa çıkan secret’ın iptali ve hesapların otomatik birleşmediği uyarısı: **[GITHUB-LOGIN.md](GITHUB-LOGIN.md)**. Bu değişiklik Firestore kurallarını değiştirmiyor; 1.8.0 kuralları yeterli. Eski Google ilerlemeni Google ile açmaya devam et. GitHub sağlayıcısı Firebase Console’da ayrıca etkinleştirilmeli.

@@ -11,42 +11,58 @@ service cloud.firestore {
     }
     function validAvatar(a) {
       return a is map && a.keys().hasOnly(['hair','outfit','eyes','face','hat'])
-        && a.hair is int && a.hair >= 0 && a.hair <= 3
-        && a.outfit is int && a.outfit >= 0 && a.outfit <= 3
+        && a.hair is int && a.hair >= 0 && a.hair <= 5
+        && a.outfit is int && a.outfit >= 0 && a.outfit <= 5
         && a.eyes is int && a.eyes >= 0 && a.eyes <= 3
         && a.face is int && a.face >= 0 && a.face <= 3
-        && a.hat is int && a.hat >= 0 && a.hat <= 3;
+        && a.hat is int && a.hat >= 0 && a.hat <= 5;
     }
     function validTrophies(t) {
       return t is map && t.keys().hasOnly(['season','claimed','prestige'])
-        && t.season == 1 && t.claimed is list && t.claimed.size() <= 64
+        && t.season == 1 && t.claimed is list && t.claimed.size() <= 124
         && t.claimed.toSet().size() == t.claimed.size()
-        && t.claimed.hasOnly([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64])
+        && t.claimed.hasOnly([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124])
         && t.prestige is int && t.prestige >= 0
         && t.prestige * 1000 <= t.claimed.size() * 20;
     }
-    // Private, versioned Google account backup. No paid server required.
+    function validJourney(j) {
+      return j is map && j.keys().hasOnly(['start','active','claimed','entries'])
+        && (j.start == null || (j.start is string && j.start.matches('^20[0-9]{2}-[0-9]{2}-[0-9]{2}$')))
+        && j.active is int && j.active >= 1 && j.active <= 30
+        && j.claimed is list && j.claimed.size() <= 30
+        && j.claimed.toSet().size() == j.claimed.size()
+        && j.claimed.hasOnly([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30])
+        && j.entries is map && j.entries.size() <= 30
+        && j.entries.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30']);
+    }
+    function ownedAvatar(a, count) {
+      return (a.hair < 4 || (a.hair == 4 && count >= 5) || (a.hair == 5 && count >= 20))
+        && (a.outfit < 4 || (a.outfit == 4 && count >= 10) || (a.outfit == 5 && count >= 25))
+        && (a.hat < 4 || (a.hat == 4 && count >= 15) || (a.hat == 5 && count >= 30));
+    }
+    // Private, versioned UID account backup. No paid server required.
     function validPlayerSave() {
       let data = request.resource.data;
       let state = data.state;
       return data.keys().hasOnly(['version','revision','writeId','state','updatedAt'])
-        && data.version == 2
+        && data.version == 3
         && data.revision is int && data.revision >= 1
         && data.writeId is string && data.writeId.size() > 0 && data.writeId.size() <= 100
         && data.updatedAt == request.time
         && state is map
-        && state.keys().hasOnly(['stage','wallet','progress','records','streak','trophies','avatar'])
-        && state.stage is int && state.stage >= 1 && state.stage <= 64
-        && state.progress is map && state.progress.size() <= 64
+        && state.keys().hasOnly(['stage','wallet','progress','records','streak','trophies','avatar','journey'])
+        && state.stage is int && state.stage >= 1 && state.stage <= 124
+        && state.progress is map && state.progress.size() <= 124
         && state.records is list && state.records.size() == 0
         && state.streak is map && state.streak.size() <= 4
         && state.wallet is map
         && state.wallet.keys().hasOnly(['gold','hints','claimed','migrated'])
         && state.wallet.gold is int && state.wallet.gold >= 0 && state.wallet.gold <= 1000000000
         && state.wallet.hints is int && state.wallet.hints >= 0 && state.wallet.hints <= 1000000
-        && state.wallet.claimed is list && state.wallet.claimed.size() <= 64
+        && state.wallet.claimed is list && state.wallet.claimed.size() <= 124
         && state.wallet.migrated == true
-        && validTrophies(state.trophies) && validAvatar(state.avatar);
+        && validTrophies(state.trophies) && validAvatar(state.avatar)
+        && validJourney(state.journey) && ownedAvatar(state.avatar, state.journey.claimed.size());
     }
     match /playerSaves/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
@@ -63,7 +79,7 @@ service cloud.firestore {
         let save = getAfter(/databases/$(database)/documents/playerSaves/$(uid)).data;
         return data.keys().hasOnly(['uid','name','trophies','prestige','avatar','updatedAt'])
           && data.uid == uid && data.name is string && data.name.size() <= 100
-          && data.updatedAt == request.time && save.version == 2
+          && data.updatedAt == request.time && save.version == 3
           && data.trophies is int
           && data.trophies == save.state.trophies.claimed.size() * 20 - save.state.trophies.prestige * 1000
           && data.prestige == save.state.trophies.prestige

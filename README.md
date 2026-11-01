@@ -1,5 +1,8 @@
 # Kelime Seyyahı
 
+> **Güncel sürüm 1.9.0:** 124 bölüm / 16 durak, 30 günlük keşif defteri, görev ödülleri, 6 avatar hediyesi ve 8 rozet. **Yeni Firestore kurallarını yayımla ve tüm cihazları güncelle.** Kurulum ve kayıt koruma: [MONTH-UPDATE.md](MONTH-UPDATE.md).
+
+
 Türkçe, seyahat temalı kelime bulmacası. 6 bölge (İstanbul, Kapadokya, Ege kıyıları, Pamukkale, Kaçkar, Mardin) ve 24 elle seçilmiş bulmaca. Dairedeki harfleri sürükleyerek, dokunarak veya klavyeyle birleştir. Çapraz bulmacayı doldur, bonus kelimeler bul ve sonraki durağı aç.
 
 Bu sürüm eski Blokko projesinin **1.5.0** güncellemesidir. Başka bir oyunun marka, görsel, seviye veya kaynak kodu kullanılmamıştır. Sahne çizimleri özgün SVG, bulmaca içeriği bu repo için hazırlanmıştır. Tam Türkçe sözlük yerine her aşama için tanımlı hedef ve bonus kelime listesi kullanılır; listede olmayan bir sözcük için “bu aşamanın kelimeleri arasında değil” denir. 24. aşamada mevcut içerik tamamlanır.

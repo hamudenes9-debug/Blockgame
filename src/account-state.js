@@ -1,6 +1,7 @@
+import {cleanJourney} from './month-journey.js';
 import {LEVELS} from './word-levels.js';
 import {cleanTrophies} from './trophies.js';
-import {cleanAvatar} from './avatar.js';
+import {cleanAvatar,avatarAvailable} from './avatar.js';
 import {cleanWallet} from './word-wallet.js';
 const number=(v,max)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
 const strings=(v,n)=>Array.isArray(v)?[...new Set(v.filter(x=>typeof x==='string').map(x=>x.slice(0,30)))].slice(0,n):[];
@@ -11,7 +12,8 @@ export function cleanAccount(raw={}){
  const records=[]; // Retire all legacy points; never convert them into trophies.
 
  const s=raw.streak||{};const streak={lastDay:typeof s.lastDay==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s.lastDay)?s.lastDay:null,streak:number(s.streak,100000),best:number(s.best,100000),count:number(s.count,1000000)};
- return {stage:Math.max(1,number(raw.stage,LEVELS.length)),wallet,progress,records,streak,trophies:cleanTrophies(raw.trophies),avatar:cleanAvatar(raw.avatar)};
+ const journey=cleanJourney(raw.journey),avatar=cleanAvatar(raw.avatar);for(const key of Object.keys(avatar))if(!avatarAvailable(key,avatar[key],journey.claimed.length))avatar[key]=0;
+ return {stage:Math.max(1,number(raw.stage===64&&progress[64]?.completed?65:raw.stage,LEVELS.length)),wallet,progress,records,streak,trophies:cleanTrophies(raw.trophies),avatar,journey};
 }
 export const accountKey=uid=>'seyyah-account-v1-'+(uid?'uid:'+uid:'guest');
 export const sameState=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
