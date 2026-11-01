@@ -118,3 +118,7 @@ Premium ilk tamamlamada doğrulanamıyorsa standart ödül verilir; çevrimdış
 ## Cloud Shell bakım önceliği
 
 `/bakım aç` ve `/bakım kapat`, `maintenanceOverride: true` ile manuel öncelik oluşturur; GitHub yayıncısı bunu korur. Tekrar dosyadan yönetmek için `/bakım github` kullan. Bu komut GitHub'daki açık/kapalı değerini hemen uygular. [Bakım komutları](BAKIM-REHBERI.md).
+
+## Cloud Shell yönetim komutları
+
+`/premium`, `/oyuncu`, `/duyurular`, `/duyuru-sil`, `/durum` ve `/yardım` aynı sabit commit kurucusuyla kurulur. Premium değişikliği ve duyuru silme açık terminal onayı ister. Silinen duyuru kimlikleri `deletedAnnouncementIds` alanında saklanır ve güncel yayıncı tarafından korunur. [Komut rehberi](YONETIM-KOMUTLARI.md).

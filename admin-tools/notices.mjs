@@ -1,9 +1,10 @@
 // Console notices have a reserved namespace and remain authoritative in
 // Firestore, so a scheduled GitHub publication never erases them.
-export function mergeAnnouncements(source, current=[]){
+export function mergeAnnouncements(source, current=[], deleted=[]){
+ if(!Array.isArray(deleted)||deleted.length>1000||deleted.some(id=>typeof id!=='string'))throw Error('Geçersiz silinen duyuru listesi');
  if(!Array.isArray(source)||!Array.isArray(current))throw Error('Geçersiz duyuru listesi');
  if(source.some(n=>n.id?.startsWith('shell-')))throw Error('shell- kimlikleri Cloud Shell komutuna ayrılmıştır');
- const merged=[...source,...current.filter(n=>n.id?.startsWith('shell-')).map(n=>({...n,delivery:'in-app'}))];
+ const merged=[...source,...current.filter(n=>n.id?.startsWith('shell-')).map(n=>({...n,delivery:'in-app'}))].filter(n=>!deleted.includes(n.id));
  if(merged.length>30)throw Error('Duyuru listesi dolu; mevcut duyurular silinmeden yayım durduruldu');
  if(new Set(merged.map(n=>n.id)).size!==merged.length)throw Error('Tekrarlanan duyuru kimliği');
  return merged;

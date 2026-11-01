@@ -56,3 +56,5 @@ Güncel kurucu `/bildirim 'Metin'` ve `/Bildirim 'Metin'` komutlarını da yükl
 ## Bakım yönetimi
 
 Güncel kurucu `/bakım aç 'Mesaj'`, `/bakım kapat` ve `/bakım durum` komutlarını da ekler. Kurulum bakımı açmaz. Ayrıntılar: [BAKIM-REHBERI.md](BAKIM-REHBERI.md).
+
+Duyuruları `/duyurular` ile listeleyebilir, `/duyuru-sil KIMLIK` ile onay vererek kaldırabilirsin. Gönderilmiş telefon bildirimi geri çekilmez. [Tüm yönetim komutları](YONETIM-KOMUTLARI.md).

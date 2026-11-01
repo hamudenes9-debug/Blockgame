@@ -12,7 +12,7 @@ _ks_install_duyuru() {
   }
   mkdir -p "$directory" || return 1
   temporary=$(mktemp -d "$directory/.commands.XXXXXX") || return 1
-  for name in duyuru.py bildirim.py bakim.py; do
+  for name in duyuru.py bildirim.py bakim.py yonetim.py; do
     if ! curl -fsSL "https://raw.githubusercontent.com/hamudenes9-debug/Blockgame/$ref/admin-tools/$name" -o "$temporary/$name"; then
       rm -rf "$temporary"
       return 1
@@ -23,7 +23,7 @@ _ks_install_duyuru() {
     fi
     chmod 600 "$temporary/$name" || return 1
   done
-  for name in duyuru.py bildirim.py bakim.py; do
+  for name in duyuru.py bildirim.py bakim.py yonetim.py; do
     mv "$temporary/$name" "$directory/$name" || return 1
   done
   rmdir "$temporary" || return 1
@@ -59,6 +59,26 @@ function /bakim() { /bakım "$@"; }
 function /Bakım() { /bakım "$@"; }
 BLOCK
   fi
+  if ! grep -Fq '# Kelime Seyyahi yonetim commands v1' "$HOME/.bashrc" 2>/dev/null; then
+    cat >> "$HOME/.bashrc" <<'BLOCK' || return 1
+
+# Kelime Seyyahi yonetim commands v1
+function /premium() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" premium "$@"; }
+function /oyuncu() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" oyuncu "$@"; }
+function /duyurular() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" duyurular "$@"; }
+function /duyuru-sil() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" duyuru-sil "$@"; }
+function /durum() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" durum "$@"; }
+function /yardım() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" yardım "$@"; }
+function /yardim() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" yardim "$@"; }
+BLOCK
+  fi
+function /premium() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" premium "$@"; }
+function /oyuncu() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" oyuncu "$@"; }
+function /duyurular() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" duyurular "$@"; }
+function /duyuru-sil() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" duyuru-sil "$@"; }
+function /durum() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" durum "$@"; }
+function /yardım() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" yardım "$@"; }
+function /yardim() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" yardim "$@"; }
   function /bakım() {
     python3 "$HOME/.local/share/kelime-seyyahi/bakim.py" "$@"
   }
@@ -71,7 +91,7 @@ BLOCK
   function /Duyuru() {
     python3 "$HOME/.local/share/kelime-seyyahi/duyuru.py" "$@"
   }
-  printf '%s\n' 'KURULDU: /Duyuru, /bildirim ve /bakım komutları hazır.' 'Yeni Cloud Shell Bash oturumlarında da kullanılabilir. Kurulum duyuru/bildirim göndermez ve bakımı açmaz.'
+  printf '%s\n' 'KURULDU: Tüm Seyyah yönetim komutları hazır. Liste: /yardım' 'Yeni Cloud Shell Bash oturumlarında da kullanılabilir. Kurulum duyuru/bildirim göndermez ve bakımı açmaz.'
 }
 if _ks_install_duyuru "$@"; then
   unset -f _ks_install_duyuru
