@@ -103,14 +103,24 @@ service cloud.firestore {
         && next.wallet.gold==(old.wallet.gold+receipt.gold>1000000000?1000000000:old.wallet.gold+receipt.gold)
         && next.wallet.hints==(old.wallet.hints+receipt.hints>1000000?1000000:old.wallet.hints+receipt.hints);
     }
-    function bonusTransition(key, collection, event) {
-      let before=resource.data.state.trophies.get(key,[]);
-      let after=request.resource.data.state.trophies.get(key,[]);
-      return after==before || (event.type in ['level','festival']
-        && after.size()==before.size()+1 && after.hasAll(before)
-        && after.toSet().difference(before.toSet()).hasOnly([event.id])
-        && getAfter(/databases/$(database)/documents/$(collection)/$(request.auth.uid)/levels/$(string(event.id))).data.grantedAt==request.time
-        && (key!='premiumFestival' || getAfter(/databases/$(database)/documents/$(collection)/$(request.auth.uid)/levels/$(string(event.id))).data.festival==true));
+    function validBonusDelta(before, after, id) {
+      return after==before || (after.size()==before.size()+1 && after.hasAll(before) && after.hasAny([id]) && !before.hasAny([id]));
+    }
+    function premiumReceipt(id, stacked) {
+      let d=getAfter(/databases/$(database)/documents/premiumRewards/$(request.auth.uid)/levels/$(string(id))).data;
+      return d.grantedAt==request.time && (!stacked || d.festival==true);
+    }
+    function levelTransition(before, after, event) {
+      let f0=before.get('festival',[]);
+      let f1=after.get('festival',[]);
+      let p0=before.get('premium',[]);
+      let p1=after.get('premium',[]);
+      let s0=before.get('premiumFestival',[]);
+      let s1=after.get('premiumFestival',[]);
+      return (f0==f1 && p0==p1 && s0==s1) || (event.type in ['level','festival']
+        && validBonusDelta(f0,f1,event.id) && validBonusDelta(p0,p1,event.id) && validBonusDelta(s0,s1,event.id)
+        && (p0==p1 && s0==s1 || premiumReceipt(event.id,s0!=s1 || f0!=f1))
+        && (f0==f1 || p0!=p1 || getAfter(/databases/$(database)/documents/festivalRewards/$(request.auth.uid)/levels/$(string(event.id))).data.grantedAt==request.time));
     }
     function rewardTransition() {
       let old=resource.data.state;
@@ -120,9 +130,7 @@ service cloud.firestore {
       return next.journey.claimed.hasAll(old.journey.claimed)
         && (!old.get('cosmeticsPremium',false) || next.get('cosmeticsPremium',false))
         && (event.type=='quest' ? questTransition(event.id,old,next,added) : added.size()==0)
-        && (old.trophies==next.trophies || (bonusTransition('festival','festivalRewards',event)
-        && bonusTransition('premium','premiumRewards',event)
-        && bonusTransition('premiumFestival','premiumRewards',event)));
+        && (old.trophies==next.trophies || levelTransition(old.trophies,next.trophies,event));
     }
     function todayInTurkey() {
       let t = request.time + duration.value(3, 'h');
@@ -141,7 +149,7 @@ service cloud.firestore {
         && a.hat is int && a.hat >= 0 && a.hat <= 9;
     }
     function trophyUnits(t) { return t.claimed.size()+t.get('festival',[]).size()+t.get('premium',[]).size()+t.get('premiumFestival',[]).size(); }
-    function validSubset(values, base) { return values is list && values.size()<=124 && values.toSet().size()==values.size() && base.hasAll(values); }
+    function validSubset(values, base) { return values is list && values.size()<=124 && base.hasAll(values); }
     function validTrophies(t) {
       let festival=t.get('festival',[]);
       let premium=t.get('premium',[]);
@@ -196,7 +204,7 @@ service cloud.firestore {
         && state.wallet.migrated == true
         && (unchanged('trophies') || validTrophies(state.trophies)) && (unchanged('avatar') || validAvatar(state.avatar))
         && (unchanged('journey') || validJourney(state.journey))
-        && (unchanged('avatar') && unchanged('journey') && unchanged('cosmeticsPremium') || ownedAvatar(state.avatar, state.journey.claimed.size(),state.get('cosmeticsPremium',false)))
+        && (unchanged('avatar') && unchanged('cosmeticsPremium') || ownedAvatar(state.avatar, state.journey.claimed.size(),state.get('cosmeticsPremium',false)))
         && state.get('cosmeticsPremium',false) is bool
         && (!state.get('cosmeticsPremium',false) || exists(/databases/$(database)/documents/premiumCosmetics/$(request.auth.uid)));
     }
