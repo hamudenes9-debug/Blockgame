@@ -1,7 +1,7 @@
 {
   "format": 1,
-  "minimumVersion": "1.11.1",
-  "minimumSchema": 5,
+  "minimumVersion": "1.12.0",
+  "minimumSchema": 6,
   "maintenance": {
     "enabled": false,
     "message": "Oyunumuzu iyileştiriyoruz. Biraz sonra tekrar dene.",

@@ -1,4 +1,4 @@
-export const APP_VERSION='1.11.1';
+export const APP_VERSION='1.12.0';
 export const RELEASE_API='https://api.github.com/repos/hamudenes9-debug/Blockgame/releases/latest';
 export const RELEASES_URL='https://github.com/hamudenes9-debug/Blockgame/releases';
 export function compareVersions(a,b){const parse=v=>{const m=/^v?(\d+)\.(\d+)\.(\d+)$/.exec(v);return m?m.slice(1).map(Number):null;};const x=parse(a),y=parse(b);if(!x||!y)return null;for(let i=0;i<3;i++)if(x[i]!==y[i])return Math.sign(x[i]-y[i]);return 0;}

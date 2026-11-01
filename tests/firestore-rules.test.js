@@ -38,7 +38,7 @@ test('Firestore rules: immutable daily likes, private tokens/inbox and existing 
  await assertFails(deleteDoc(doc(recipient,inboxPath)));
  await assertFails(setDoc(doc(sender,'userNotifications/recipient/items/fake'),{body:'spam',read:false}));
  await assertFails(getDoc(doc(other,inboxPath)));
- const savePath='playerSaves/recipient',save={version:5,revision:1,writeId:'first-save',state:cleanAccount({stage:8,wallet:{gold:100}}),updatedAt:serverTimestamp()};
+ const savePath='playerSaves/recipient',save={version:6,revision:1,writeId:'first-save',state:cleanAccount({stage:8,wallet:{gold:100}}),updatedAt:serverTimestamp()};
  await assertSucceeds(setDoc(doc(recipient,savePath),save));
  await assertSucceeds(getDoc(doc(recipient,savePath)));
  await assertFails(getDoc(doc(sender,savePath)));
@@ -80,7 +80,7 @@ test('Live security: premium ownership, fresh tokens, reward dates, receipts and
  try{await env.clearFirestore();const now=Date.now(),iat=Math.floor(now/1000),day=dayWindow().day;
  const owner=env.authenticatedContext('alice',{iat}).firestore(),other=env.authenticatedContext('bob',{iat}).firestore(),stale=env.authenticatedContext('alice',{iat:iat-120}).firestore();
  let state=cleanAccount({wallet:{gold:100,hints:2},journey:{start:day,entries:{1:{levels:[1,2],words:10,clean:2}}}});
- const save={version:5,revision:1,writeId:'seed',state,updatedAt:serverTimestamp()};
+ const save={version:6,revision:1,writeId:'seed',state,updatedAt:serverTimestamp()};
  await env.withSecurityRulesDisabled(async c=>{const db=c.firestore();await setDoc(doc(db,'operations/current'),{minimumSchema:4,levelIds:Array.from({length:124},(_,i)=>i+1),holidaysEnabled:true,holidayWindows:[{start:Timestamp.fromMillis(now-60000),end:Timestamp.fromMillis(now+3600000)}]});await setDoc(doc(db,'premium/alice'),{enabled:true,expiresAt:Timestamp.fromMillis(now+86400000)});await setDoc(doc(db,'playerSaves/alice'),save);});
  await assertSucceeds(getDoc(doc(owner,'premium/alice')));await assertFails(getDoc(doc(other,'premium/alice')));await assertFails(getDoc(doc(stale,'premium/alice')));await assertFails(setDoc(doc(owner,'premium/alice'),{enabled:true,expiresAt:Timestamp.fromMillis(now+1e10)}));
  await assertSucceeds(setDoc(doc(owner,'journeyClocks/alice'),{day,startedAt:serverTimestamp()}));await assertFails(updateDoc(doc(owner,'journeyClocks/alice'),{startedAt:Timestamp.fromMillis(0)}));
@@ -93,7 +93,7 @@ test('Live security: premium ownership, fresh tokens, reward dates, receipts and
  await env.withSecurityRulesDisabled(c=>updateDoc(doc(c.firestore(),'operations/current'),{holidaysEnabled:false}));
  const closed=writeBatch(owner);closed.set(doc(owner,'festivalRewards/alice/levels/2'),{uid:'alice',level:2,grantedAt:serverTimestamp()});closed.set(doc(owner,'playerSaves/alice'),{...save,revision:4,event:{type:'festival',id:2},state:cleanAccount({...state,trophies:{claimed:[1,2],festival:[1,2]}})});await assertFails(closed.commit());
  await assertFails(setDoc(doc(owner,'playerSaves/alice'),{...save,version:3,revision:4,state}));await assertFails(setDoc(doc(stale,'playerSaves/alice'),{...save,revision:4,state}));
- await env.withSecurityRulesDisabled(c=>updateDoc(doc(c.firestore(),'operations/current'),{minimumSchema:6}));await assertFails(setDoc(doc(owner,'playerSaves/alice'),{...save,revision:4,state}));
+ await env.withSecurityRulesDisabled(c=>updateDoc(doc(c.firestore(),'operations/current'),{minimumSchema:7}));await assertFails(setDoc(doc(owner,'playerSaves/alice'),{...save,revision:4,state}));
  }finally{await env.cleanup();}
 });
 
@@ -105,7 +105,7 @@ test('Premium v2: doubled quests, 80 holiday cups, permanent cosmetics and expir
  try{
   await env.clearFirestore();const now=Date.now(),day=dayWindow().day,iat=Math.floor(now/1000),db=env.authenticatedContext('premium-user',{iat}).firestore(),other=env.authenticatedContext('other',{iat}).firestore();
   let state=cleanAccount({wallet:{gold:100,hints:2},journey:{start:day,entries:{1:{levels:[1,2],words:10,clean:2}}}});
-  const save=(s,revision,event)=>({version:5,revision,writeId:'premium-test-'+revision,state:s,...(event?{event}:{}),updatedAt:serverTimestamp()});
+  const save=(s,revision,event)=>({version:6,revision,writeId:'premium-test-'+revision,state:s,...(event?{event}:{}),updatedAt:serverTimestamp()});
   const rank=(batch,s)=>batch.set(doc(db,'trophyPlayers/premium-user'),{uid:'premium-user',name:'Premium',trophies:trophyCount(s.trophies),prestige:s.trophies.prestige,avatar:s.avatar,updatedAt:serverTimestamp()});
   await env.withSecurityRulesDisabled(async c=>{const a=c.firestore();await setDoc(doc(a,'operations/current'),{minimumSchema:5,levelIds:Array.from({length:124},(_,i)=>i+1),holidaysEnabled:true,holidayWindows:[{start:Timestamp.fromMillis(now-60000),end:Timestamp.fromMillis(now+3600000)}]});await setDoc(doc(a,'premium/premium-user'),{enabled:true,expiresAt:Timestamp.fromMillis(now+86400000)});await setDoc(doc(a,'playerSaves/premium-user'),save(state,1));});
   await assertSucceeds(setDoc(doc(db,'premiumCosmetics/premium-user'),{unlocked:true,grantedAt:serverTimestamp()}));
@@ -125,5 +125,48 @@ test('Premium v2: doubled quests, 80 holiday cups, permanent cosmetics and expir
   await assertFails(setDoc(doc(db,'playerSaves/premium-user'),save(forged,5,{type:'level',id:4})));
   const q2=writeBatch(db);q2.set(doc(db,'questRewards/premium-user/days/2'),{uid:'premium-user',day:2,gold:80,hints:1,levels:[1,2],words:10,clean:2,grantedAt:serverTimestamp()});q2.set(doc(db,'playerSaves/premium-user'),save({...state,wallet:{...state.wallet,gold:330,hints:4},journey:{...state.journey,claimed:[1,2]}},5,{type:'quest',id:2}));await assertFails(q2.commit());
   await assertFails(setDoc(doc(db,'playerSaves/premium-user'),save({...state,cosmeticsPremium:false},5)));
+ }finally{await env.cleanup();}
+});
+
+test('Timed events: 40/80/160 cups, canonical gold, immutable receipts, expiry and daily quest stacking',{skip:!process.env.FIRESTORE_EMULATOR_HOST,timeout:120000},async()=>{
+ const {initializeTestEnvironment,assertSucceeds,assertFails}=await import('@firebase/rules-unit-testing');
+ const {doc,setDoc,updateDoc,getDoc,serverTimestamp,Timestamp,writeBatch}=await import('firebase/firestore');
+ const {awardTrophies,trophyCount}=await import('../src/trophies.js');
+ const env=await initializeTestEnvironment({projectId:'demo-kelime-seyyahi',firestore:{rules:readFileSync(new URL('../firestore.rules',import.meta.url),'utf8')}});
+ const save=(state,revision,event)=>({version:6,revision,writeId:'event-test-'+revision,state,...(event?{event}:{}),updatedAt:serverTimestamp()});
+ try{
+  await env.clearFirestore();
+  for(const premium of [false,true])for(const holiday of [false,true]){
+   const now=Date.now(),uid=`event-${premium}-${holiday}`,day=dayWindow().day;
+   const db=env.authenticatedContext(uid,{iat:Math.floor(now/1000),firebase:{sign_in_provider:'google.com'}}).firestore();
+   const initial=cleanAccount({journey:{start:day,entries:{1:{levels:[1,2],words:10,clean:2}}}});
+   const event={enabled:true,id:'event-test',startsAt:Timestamp.fromMillis(now-60000),endsAt:Timestamp.fromMillis(now+3600000)};
+   await env.withSecurityRulesDisabled(async c=>{const a=c.firestore();await setDoc(doc(a,'operations/current'),{minimumSchema:6,levelIds:Array.from({length:124},(_,i)=>i+1),holidaysEnabled:holiday,holidayWindows:[{start:Timestamp.fromMillis(now-60000),end:Timestamp.fromMillis(now+3600000)}],rewardEvent:event});await setDoc(doc(a,'premium',uid),{enabled:premium,expiresAt:Timestamp.fromMillis(now+86400000)});await setDoc(doc(a,'playerSaves',uid),save(initial,1));await setDoc(doc(a,'journeyClocks',uid),{day,startedAt:Timestamp.fromMillis(now)});});
+   const trophies=awardTrophies(initial.trophies,1,holiday,premium,event.id).trophies;
+   const state=cleanAccount({...initial,stage:2,progress:{1:{found:['AB','BA'],completed:true}},wallet:{gold:35*(premium?4:2),claimed:[1]},trophies});
+   const receipt={uid,level:1,eventId:event.id,gold:35*(premium?2:1),cups:20*(premium?2:1)*(holiday?2:1),premium,festival:holiday,grantedAt:serverTimestamp()};
+   const levelBatch=(r=receipt,s=state,revision=2)=>{const b=writeBatch(db);b.set(doc(db,'eventRewards',uid,'levels','1'),r);b.set(doc(db,'playerSaves',uid),save(s,revision,{type:'level',id:1}));b.set(doc(db,'trophyPlayers',uid),{uid,name:'Event tester',trophies:trophyCount(s.trophies),prestige:s.trophies.prestige,avatar:s.avatar,updatedAt:serverTimestamp()});return b;};
+   await assertFails(setDoc(doc(db,'operations/current'),{rewardEvent:event}));
+   await assertFails(levelBatch({...receipt,eventId:'old-event'}).commit());
+   await assertFails(levelBatch({...receipt,cups:receipt.cups+20}).commit());
+   await assertFails(setDoc(doc(db,'playerSaves',uid),save(state,2,{type:'level',id:1})));
+   await assertSucceeds(levelBatch().commit());
+   assert.equal(trophyCount(state.trophies),40*(premium?2:1)*(holiday?2:1));
+   assert.equal((await getDoc(doc(db,'playerSaves',uid))).data().state.wallet.gold,35*(premium?4:2));
+   await assertFails(levelBatch(receipt,state,3).commit());
+   // A normal write cannot inflate or erase confirmed event points.
+   await assertFails(setDoc(doc(db,'playerSaves',uid),save({...state,trophies:{...state.trophies,eventPoints:state.trophies.eventPoints+20}},3)));
+   await assertFails(setDoc(doc(db,'playerSaves',uid),save({...state,trophies:{...state.trophies,events:{},eventPoints:0}},3)));
+   await assertSucceeds(setDoc(doc(db,'playerSaves',uid),save(state,3)));
+   const qGold=40*(premium?4:2),qState=cleanAccount({...state,wallet:{...state.wallet,gold:state.wallet.gold+qGold,hints:1},journey:{...state.journey,claimed:[1]}});
+   const quest=writeBatch(db);quest.set(doc(db,'questRewards',uid,'days','1'),{uid,day:1,gold:qGold,hints:1,levels:[1,2],words:10,clean:2,grantedAt:serverTimestamp()});quest.set(doc(db,'playerSaves',uid),save(qState,4,{type:'quest',id:1}));await assertSucceeds(quest.commit());
+   // Server expiry, not a client clock, controls eligibility. Ordinary saving stays available.
+   await env.withSecurityRulesDisabled(c=>updateDoc(doc(c.firestore(),'operations/current'),{'rewardEvent.endsAt':Timestamp.fromMillis(now-1)}));
+   const t2=awardTrophies(qState.trophies,2,false,false,event.id).trophies;
+   const late=cleanAccount({...qState,trophies:t2,wallet:{...qState.wallet,claimed:[1,2]},progress:{...qState.progress,2:{found:['AB','BA'],completed:true}}});
+   const lateBatch=writeBatch(db);lateBatch.set(doc(db,'eventRewards',uid,'levels','2'),{uid,level:2,eventId:event.id,gold:35,cups:20,premium:false,festival:false,grantedAt:serverTimestamp()});lateBatch.set(doc(db,'playerSaves',uid),save(late,5,{type:'level',id:2}));await assertFails(lateBatch.commit());
+   await assertSucceeds(setDoc(doc(db,'playerSaves',uid),save(qState,5)));
+   await assertFails(getDoc(doc(env.authenticatedContext('other',{iat:Math.floor(Date.now()/1000)}).firestore(),'eventRewards',uid,'levels','1')));
+  }
  }finally{await env.cleanup();}
 });

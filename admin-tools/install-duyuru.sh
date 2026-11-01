@@ -12,7 +12,7 @@ _ks_install_duyuru() {
   }
   mkdir -p "$directory" || return 1
   temporary=$(mktemp -d "$directory/.commands.XXXXXX") || return 1
-  for name in duyuru.py bildirim.py bakim.py yonetim.py; do
+  for name in duyuru.py bildirim.py bakim.py yonetim.py event.py; do
     if ! curl -fsSL "https://raw.githubusercontent.com/hamudenes9-debug/Blockgame/$ref/admin-tools/$name" -o "$temporary/$name"; then
       rm -rf "$temporary"
       return 1
@@ -23,7 +23,7 @@ _ks_install_duyuru() {
     fi
     chmod 600 "$temporary/$name" || return 1
   done
-  for name in duyuru.py bildirim.py bakim.py yonetim.py; do
+  for name in duyuru.py bildirim.py bakim.py yonetim.py event.py; do
     mv "$temporary/$name" "$directory/$name" || return 1
   done
   rmdir "$temporary" || return 1
@@ -79,6 +79,14 @@ function /duyuru-sil() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" 
 function /durum() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" durum "$@"; }
 function /yardım() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" yardım "$@"; }
 function /yardim() { python3 "$HOME/.local/share/kelime-seyyahi/yonetim.py" yardim "$@"; }
+  if ! grep -Fq '# Kelime Seyyahi event command v1' "$HOME/.bashrc" 2>/dev/null; then
+    cat >> "$HOME/.bashrc" <<'BLOCK' || return 1
+
+# Kelime Seyyahi event command v1
+function /event() { python3 "$HOME/.local/share/kelime-seyyahi/event.py" "$@"; }
+BLOCK
+  fi
+  function /event() { python3 "$HOME/.local/share/kelime-seyyahi/event.py" "$@"; }
   function /bakım() {
     python3 "$HOME/.local/share/kelime-seyyahi/bakim.py" "$@"
   }

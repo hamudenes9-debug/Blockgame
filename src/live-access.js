@@ -22,7 +22,7 @@ export function onAccessChange(fn){callback=fn;}
 export async function checkAccess(force=false){if(busy||blocked||document.hidden)return;busy=true;const epoch=generation;
  try{const next=await freshIdentity();if(epoch!==generation)return;serverClock.accept(next.issuedAt);const changed=identity?.uid!==next.uid;identity=next;if(changed){cosmetics=false;entitlement=null;bypass=false;accountAt=-Infinity;}
   const {db,user}=await requireCloudUser();
-  if(force||performance.now()-configAt>=60000){const snap=await withTimeout(getDocFromServer(doc(db,'operations','current')),6000);if(epoch!==generation)return;const parsed=validatePolicy(snap.data());if(user.uid!==identity.uid)throw Error('Hesap değişti');policy=parsed;configAt=performance.now();}
+  if(force||performance.now()-configAt>=15000){const snap=await withTimeout(getDocFromServer(doc(db,'operations','current')),6000);if(epoch!==generation)return;const parsed=validatePolicy(snap.data());if(user.uid!==identity.uid)throw Error('Hesap değişti');policy=parsed;configAt=performance.now();}
   if(force||performance.now()-accountAt>=60000){const snap=next.anonymous?null:await withTimeout(getDocFromServer(doc(db,'premium',next.uid)),6000);if(epoch!==generation)return;if(user.uid!==identity.uid)throw Error('Hesap değişti');entitlement=snap?.data()||null;
    if(!next.anonymous){const owned=await withTimeout(runTransaction(db,async tx=>{const ref=doc(db,'premiumCosmetics',next.uid),record=await tx.get(ref);if(record.exists())return true;if(premiumActive(entitlement,serverClock.now())){tx.set(ref,{unlocked:true,grantedAt:serverTimestamp()});return true;}return false;}),6000);if(epoch!==generation)return;cosmetics=owned;}else cosmetics=false;
    accountAt=performance.now();}

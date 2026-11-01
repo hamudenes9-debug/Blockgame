@@ -50,3 +50,7 @@ Gönderilmiş telefon bildirimi geri çekilmez, başlamış push gönderimi ipta
 `/oyuncu`, `/premium durum`, `/duyurular` ve `/durum` hiçbir belgeye yazmaz. `/oyuncu` bulut kaydını gösterir; henüz eşitlenmemiş çevrimdışı ilerleme dahil değildir. Bulut kaydı yoksa sıfır bakiye uydurmak yerine bunun eksik olduğunu bildirir. Okumalar ayrı anlarda yapılır; eşzamanlı oyun/Premium işlemleri sırasında anlık fark olabilir. E-posta, cihaz tokenı ve giriş kimlik bilgileri gösterilmez.
 
 Diğer komutlar için: [Duyuru](DUYURU-REHBERI.md), [Bildirim](BILDIRIM-REHBERI.md), [Bakım](BAKIM-REHBERI.md).
+
+## Dakikalık etkinlik
+
+`/event 30`, `/event durum`, `/event kapat`: 1.12.0 APK ve şema 6 kurulumundan sonra kullanılır. Süre sonunda otomatik biter. [Etkinlik rehberi](EVENT-REHBERI.md).

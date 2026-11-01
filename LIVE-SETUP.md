@@ -122,3 +122,7 @@ Premium ilk tamamlamada doğrulanamıyorsa standart ödül verilir; çevrimdış
 ## Cloud Shell yönetim komutları
 
 `/premium`, `/oyuncu`, `/duyurular`, `/duyuru-sil`, `/durum` ve `/yardım` aynı sabit commit kurucusuyla kurulur. Premium değişikliği ve duyuru silme açık terminal onayı ister. Silinen duyuru kimlikleri `deletedAnnouncementIds` alanında saklanır ve güncel yayıncı tarafından korunur. [Komut rehberi](YONETIM-KOMUTLARI.md).
+
+## 1.12.0 — Dakikalık etkinlik
+
+Yeni APK, şema 6 Rules ve `admin-tools/upgrade-event-v1.py` gerekir. Güncel kurucu `/event DAKIKA`, `/event durum`, `/event kapat` ekler. Etkinlik Premium/bayramla çarpılır ve sunucu saatinde otomatik sona erer. [Etkinlik rehberi](EVENT-REHBERI.md).

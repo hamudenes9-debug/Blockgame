@@ -15,6 +15,7 @@ HELP = '''Komutlar:
 /bildirim 'metin'               Android push + oyun içi duyuru
 /bakım aç 'mesaj'               Bakımı aç (/bakim ac da kullanılabilir)
 /bakım kapat | durum | github   Bakımı kapat, oku veya GitHub'a devret
+/event 30                      30 dakika 2× altın/kupa (durum veya kapat da kullanılabilir)
 /premium ver UID 365            365 gün ekle (onay gerekir)
 /premium durum UID             Premium durumunu oku
 /premium iptal UID             Premium'u kapat (onay gerekir)
@@ -195,7 +196,7 @@ def player(client, uid):
         record = data(save)
         state = record.get('state', {})
         trophy = state.get('trophies', {})
-        points = sum(len(trophy.get(k, [])) for k in ('claimed', 'festival', 'premium', 'premiumFestival')) * 20 - trophy.get('prestige', 0) * 1000
+        points = sum(len(trophy.get(k, [])) for k in ('claimed', 'festival', 'premium', 'premiumFestival')) * 20 + trophy.get('eventPoints', 0) - trophy.get('prestige', 0) * 1000
         print('Buluttaki bölüm:', safe(state.get('stage')), '| Altın:', safe(state.get('wallet', {}).get('gold')))
         print('Kupa:', points, '| Prestij:', safe(trophy.get('prestige', 0)))
         print('Kayıt zamanı:', safe(record.get('updatedAt')))
@@ -246,6 +247,7 @@ def main(args=None):
                 print('Bakım yönetimi:', 'Cloud Shell' if record.get('maintenanceOverride') is True else 'GitHub')
                 print('Minimum sürüm:', safe(record.get('minimumVersion')), '| Şema:', safe(record.get('minimumSchema')))
                 print('Duyuru sayısı:', len(record['announcements']), '| Bayram sistemi:', safe(record.get('holidaysEnabled')))
+                print('Etkinlik kaydı (güncel durum: /event durum):', safe(record.get('rewardEvent')))
         return 0
     except urllib.error.HTTPError as error:
         print('İşlem doğrulanamadı. HTTP:', error.code, file=sys.stderr)
