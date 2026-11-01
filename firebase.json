@@ -1,16 +1,4 @@
 {
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "community",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "*.log",
-        "test"
-      ]
-    }
-  ],
   "firestore": {
     "rules": "firestore.rules"
   },

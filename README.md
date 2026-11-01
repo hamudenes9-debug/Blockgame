@@ -90,3 +90,11 @@ Bu cihaz görünümü cihazda kalan son 100 kaydı toplar; eski sürümlerde yer
 - Alıcıya özel gelen kutusu, okundu işareti, isteğe bağlı FCM beğeni bildirimi, açılış/koşullar/güncelleme ekranlarını bekleyen bildirim yönlendirmesi.
 - **Ek Firebase kurulumu zorunlu:** yeni `firestore.rules` ve `functions/` sunucusu ayrı yayınlanmalıdır. Kapalı uygulamaya beğeni gönderimi APK’yı yüklemekle tek başına çalışmaz. Blaze ücretlendirmesi ve fiziksel cihaz testleri dahil [kurulum rehberi](FIREBASE-SETUP.md).
 - Günlük sayılar da istemci skor bildirimlerine dayanır; gerçek oyun sunucuda doğrulanmaz. Kayıt okuma maliyetleri ölçekle artar. Bildirim teslimatı best effort, uygulama içi gelen kutusu ayrı kalıcıdır.
+
+## 1.6.1 — Spark ile ücretsiz beğeni kutusu (güncel yöntem)
+
+1.6.0’daki ücretli sunucu gereksinimi bu sürümün beğeni ekranı için kaldırıldı. **Blaze’e geçmeyin, Cloud Functions yayınlamayın.** 1.6.0 beğeni kuralları değişmeden kullanılabilir.
+
+Topluluk ekranı mevcut beğenileri doğrudan Firestore’dan dinler: son 7 İstanbul günü, gün başına en yeni 30 kayıt. İsim, gönderen UID’sinin herkese açık skor kaydından alınır; kayıt yoksa “Bir seyyah” gösterilir. Okundu durumu bu cihazda hesaba özel saklanır. Dinleyiciler ekrandan çıkınca durur; ilk açılış geçmişi, açık ekran yeni beğenileri gösterir. **Kapalı uygulamaya beğeni push bildirimi yoktur.** Günlük seri ve üç saatlik yerel hatırlatmalar korunur. Spark kotaları geçerlidir; sınırsız okuma değildir.
+
+`functions/` eski opsiyonel sunucu kodu olarak korunur, varsayılan dağıtımdan çıkarılmıştır. Yeni sürüm FCM kaydı oluşturmaz. Güncel adımlar: [FIREBASE-SETUP.md](FIREBASE-SETUP.md).
