@@ -1,4 +1,4 @@
-# 1.10.1 — İsteğe bağlı çevrimiçi hizmetlerin kurulumu
+# 1.11.0 — Premium v2 ve çevrimiçi hizmetlerin kurulumu
 
 **1.10.1 normal oyun için zorunlu interneti kaldırır. Sunucu kurulumu yoksa veya bağlantı kesilirse normal bölümler oynanır, ilerleme cihazda saklanır. Bulut eşitleme, Premium doğrulaması ve güvenli görev/bayram ödülleri ise çevrimiçi doğrulama ister.** Bu çalışma sırasında üretim Firestore kuralları, Firebase sağlayıcıları, yönetici secret veya gerçek kullanıcının Premium kaydı değiştirilmedi. Kod/test/APK hazırlamak canlı sisteme yönetici erişimi vermez.
 
@@ -12,7 +12,7 @@ Eski sürümde mümkünse son kez Profil → Şimdi eşitle. Uygulamayı kaldır
 
 ## 3. Firestore kuralları
 
-Bu sürümün `firestore.rules` dosyasının TAM içeriğini Firestore Database → Rules → **Publish** ile yayımla. Eski sürüm (şema 3) yazımları reddedilir. Tüm cihazları 1.10.0’a yükselt; yeni APK’nın çevrimiçi kapısını açmak için aşağıdaki canlı ayarı da yayımla.
+Bu sürümün `firestore.rules` dosyasının TAM içeriğini Firestore Database → Rules → **Publish** ile yayımla. Şema 5 yayımlandığında eski şema 3/4 yazımları reddedilir. Tüm cihazları 1.11.0’a yükselt. Normal oyun çevrimdışı kalır; çevrimiçi hizmetler için aşağıdaki canlı ayarı yayımla.
 
 `premium`, `operations/current`, `journeyClocks`, `questRewards` ve `festivalRewards` için istemcide yönetici anahtarı yoktur. Premium/operasyon yazımları istemciye kapalı, kullanıcı özel okumaları UID ile sınırlıdır. Ödül belgeleri sunucu zamanı ile değişmez olarak oluşturulur.
 
@@ -55,7 +55,7 @@ Gönderici `notificationDeliveries/{id}` kaydını göndermeden önce ayırır; 
 - `maintenance.enabled`: `true` / `false`.
 - `maintenance.message`: ekranda görünen açıklama.
 - `maintenance.until`: isteğe bağlı tahmini bitiş metni; otomatik kapatma değildir.
-- `minimumVersion`: uygulama kapısı için semantik sürüm (bu sürüm `1.10.0`).
+- `minimumVersion`: uygulama kapısı için semantik sürüm (bu sürüm `1.11.0`).
 - `minimumSchema`: sunucunun kabul ettiği protokol. Bu sürüm `4`; daha yeni şema değerine çıkarmak bu sürümün sunucu işlemlerini engeller. Uyumlu yeni istemci olmadan artırma.
 
 Ayarlar uygulamada yaklaşık 60 saniyede bir sunucudan okunur; 120 saniyeyi aşan/başarısız kontrol oynanışı bekletir. GitHub Actions kuyruğu ve ağ nedeniyle anında küresel değişiklik sözü yoktur.
@@ -97,3 +97,16 @@ Aynı sürüm numarasıyla tekrar derleme mevcut APK’yı değiştirmez: CI tes
 
 ### 1.10.1 çevrimdışı davranışı
 Eksik/erişilemeyen canlı ayar veya eski oturum zaman bilgisi normal oyunu kilitlemez. Oynanış için yerel tarih kullanılabilir; görev ödülünün sunucu zamanı ve tek-seferlik makbuz kontrolü gevşetilmedi. Çevrimdışı bölüm tamamlamaları standart 20 kupa verir, bayram ek kupası sonradan otomatik eklenmez. Premium çevrimdışı doğrulanamıyorsa normal ipucu envanteri kullanılır. Doğrulanmış hesap engeli hâlâ uygulanır; bakım/minimum sürüm kontrolleri yalnızca güncel çevrimiçi ayarlarla uygulanır. Bulut çakışması yerel oyunu durdurmaz; kayıtları eşitlemeden cihaz değiştirmeyin veya uygulamayı silmeyin.
+
+## 1.11.0 yükseltmesi — mevcut kurulum için
+
+1. Önce imzalı 1.11.0 APK’yı uygulamayı silmeden kur.
+2. Firebase sahibi olarak Google Cloud Shell’de, yayımlanmış `v1.11.0` etiketindeki `admin-tools/upgrade-premium-v2.py` dosyasını çalıştır. Script kaynak kuralları aynı etiketten indirir, Firebase Rules API ile derleyip yayımlar. Ardından yalnızca `operations/current` içindeki minimum sürüm/şema, bölüm kimliği listesi ve duyuruları günceller. Başka kullanıcılara açık kurallar yazmaz, Premium sürelerini/bakiyeleri/bakım ve bayram ayarlarını değiştirmez.
+3. Script önce Cloud Shell ana klasörüne izinleri 0600 olan eski kural sürümü/ayar yedeği kaydeder. Kısmi hata çıkarsa çıktıyı kontrol et; yalnızca son adım eksik kalmış olabilir. Tekrar çalıştırmak ödül veya Premium süresi eklemez. Daha yeni şema varsa sürümü geriye çekmez.
+4. Oyunda Premium durumunu yenile. Aktif Premium ile `premiumCosmetics/{uid}` kalıcı açılışı oluşturulur. Hesap eşitlendikten sonra Profil’den 12 yeni öğeyi seçebilirsin.
+
+Script kullanıcı tarafından çalıştırılmadan üretim kuralları/ayarları değişmez. GitHub Actions yöneticisi kurulmamışsa yeşil workflow yayım kanıtı değildir. Yeni duyuru eski sınırsız harf açma reklamının yerini alır; otomatik kapalı-uygulama push göndermez. Mevcut alıcılara paket değişikliğini bildir; gerekli iade/satış yükümlülüklerini değerlendir.
+
+Premium bölüm bonusu `premiumRewards/{uid}/levels/{level}` tek-seferlik makbuzuyla korunur. Bayramla birleşen 80 kupa aynı makbuzda `festival:true` olarak doğrulanır; ayrıca ikinci bir bayram makbuzu gerektirmez. Normal bayram bonusunda önceki `festivalRewards` makbuzu kullanılır. Başlangıç/yeniden deneme, süre sonu ve iki cihaz kontrolleri Firebase kurallarındadır. Standart altın ve bulmaca çözüm verileri hâlâ istemci bildirimidir; bu tam çözüm/cüzdan anti-cheat sistemi değildir.
+
+Premium ilk tamamlamada doğrulanamıyorsa standart ödül verilir; çevrimdışı bitirilen eski bölümlere geriye dönük 2× eklenmez. Bonus onaylanmadan süre biter veya etkinlik kapanırsa onaysız ek ödül uzlaştırılır; standart ilerleme korunur. Kalıcı avatar hakkı ilk başarılı aktif-Premium doğrulamasında açılır; henüz açılmadan Premium süresi bittiyse sonradan otomatik hak üretilmez. Günlük görev altını ödülün alınma anındaki Premium durumuyla belirlenir, görev ipucu miktarı değişmez.

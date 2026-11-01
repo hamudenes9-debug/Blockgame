@@ -128,6 +128,7 @@ service cloud.firestore {
       let event=request.resource.data.get('event', {'type':'save','id':0});
       let added=next.journey.claimed.toSet().difference(old.journey.claimed.toSet());
       return next.journey.claimed.hasAll(old.journey.claimed)
+        && next.trophies.claimed.hasAll(old.trophies.claimed) && next.wallet.claimed.hasAll(old.wallet.claimed)
         && (!old.get('cosmeticsPremium',false) || next.get('cosmeticsPremium',false))
         && (event.type=='quest' ? questTransition(event.id,old,next,added) : added.size()==0)
         && (old.trophies==next.trophies || levelTransition(old.trophies,next.trophies,event));

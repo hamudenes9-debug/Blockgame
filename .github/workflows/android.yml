@@ -40,6 +40,8 @@ jobs:
           cat firebase-fingerprints.txt >> "$GITHUB_STEP_SUMMARY"
       - run: npm ci
       - run: npm test
+      - name: Test administrator upgrade helper
+        run: python3 -m unittest discover -s tests -p '*_test.py'
       - run: npm ci --prefix functions
       - run: npm --prefix functions run check
       - name: Verify Firestore access rules in an isolated emulator
@@ -97,4 +99,4 @@ jobs:
             echo "This commit was built and tested; no new release was published. See the build artifact."
             exit 0
           fi
-          gh release create "$TAG" Kelime-Seyyahi.apk Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --prerelease --title "Kelime Seyyahı $VERSION" --notes "1.10.1: Zorunlu internet kaldırıldı. Sunucu ayarları eksik olsa veya bağlantı kesilse bile normal bölümler oynanır; ilerleme cihazda saklanır. Premium doğrulaması, bulut eşitleme ve sunucu görev/bayram ödülleri bağlantı ve LIVE-SETUP.md kurulumu gerektirir. 124 bölüm, hesap kayıtları ve cüzdan korunur. Uygulamayı silmeden üzerine kurun. Blokko.apk aynı APK takma adıdır. Destek: Tirezteknoloji@gmail.com."
+          gh release create "$TAG" Kelime-Seyyahi.apk Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --prerelease --title "Kelime Seyyahı $VERSION" --notes "1.11.0: Premium paketi yenilendi. Yeni bölümün ilk tamamlamasında 2× altın ve 40 kupa; bayramla birleşince 80 kupa. Günlük görev altını 2×, ipucu miktarı aynı. 4 saç, 4 kıyafet ve 4 şapka aktif Premium ile kalıcı açılır. Sınırsız Harf aç kaldırıldı; fiyat 99,99 TL/yıl ve mevcut bitiş tarihleri değişmedi. ÖNEMLİ: Premium v2 ve eşitleme için şema 5 Firestore kurallarını yayımlayın; LIVE-SETUP.md ve admin-tools/upgrade-premium-v2.py rehberini izleyin. Bu APK üretim ayarlarını kendiliğinden değiştirmez. Normal çevrimdışı oyun, 124 bölüm ve kayıtlar korunur; silmeden üzerine kurun. Premium çarpanları sunucu onayı gerektirir; eski bakiyeler ve alınmış ödüller katlanmaz. Destek: tirezteknoloji@gmail.com."

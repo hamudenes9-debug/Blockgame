@@ -1,8 +1,8 @@
 # Kelime Seyyahı 1.8.0 — Google hesabına bağlı bulut kaydı ve ücretsiz beğeniler
 
-## Güncel 1.10.1 — Çevrimiçi hizmetlerin kurulumu
+## Güncel 1.11.0 — Çevrimiçi hizmetlerin kurulumu
 
-[**LIVE-SETUP.md**](LIVE-SETUP.md): Anonymous sağlayıcıyı etkinleştir, yeni `firestore.rules` (şema 4) yayımla, GitHub Actions yönetici secret’ını güvenle tanımla ve `operations/current` ayarını yayımla. Kod/derleme bu üretim adımlarını senin adına tamamlamaz. Kurulum yoksa normal oyun çevrimdışı devam eder; çevrimiçi hizmetler kullanılamaz. [Premium verme rehberi](PREMIUM-GUIDE.md).
+[**LIVE-SETUP.md**](LIVE-SETUP.md): Anonymous sağlayıcıyı etkinleştir, yeni `firestore.rules` (şema 5) yayımla, GitHub Actions yönetici secret’ını güvenle tanımla ve `operations/current` ayarını yayımla. Kod/derleme bu üretim adımlarını senin adına tamamlamaz. Kurulum yoksa normal oyun çevrimdışı devam eder; çevrimiçi hizmetler kullanılamaz. [Premium verme rehberi](PREMIUM-GUIDE.md).
 
 
 ## Önceki 1.9.0 — Kuralların yeniden yayımlanması gerekiyor

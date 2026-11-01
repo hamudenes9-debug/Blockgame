@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {cleanAccount} from '../src/account-state.js';
@@ -62,6 +63,7 @@ test('Firestore rules: immutable daily likes, private tokens/inbox and existing 
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4,state:{...save.state,avatar:{...save.state.avatar,hat:5}}}));
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4,state:{...save.state,journey:{...save.state.journey,claimed:[1,1]}}}));
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4,state:{...save.state,journey:{...save.state.journey,claimed:[31]}}}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4}));
  const expanded=cleanAccount({stage:124,trophies:{claimed:Array.from({length:124},(_,i)=>i+1),prestige:2},avatar:{hair:5,outfit:5,hat:5},journey:{start:'2026-11-01',claimed:Array.from({length:30},(_,i)=>i+1)}});
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4,state:expanded}));
  await assertFails(deleteDoc(doc(recipient,savePath)));
