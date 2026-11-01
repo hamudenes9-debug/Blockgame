@@ -1,5 +1,6 @@
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
+import {cleanAccount} from '../src/account-state.js';
 import {dayWindow} from '../shared/practice.js';
 
 test('Firestore rules: immutable daily likes, private tokens/inbox and existing scores', {skip:!process.env.FIRESTORE_EMULATOR_HOST,timeout:60000},async()=>{
@@ -36,6 +37,18 @@ test('Firestore rules: immutable daily likes, private tokens/inbox and existing 
  await assertFails(deleteDoc(doc(recipient,inboxPath)));
  await assertFails(setDoc(doc(sender,'userNotifications/recipient/items/fake'),{body:'spam',read:false}));
  await assertFails(getDoc(doc(other,inboxPath)));
+ const savePath='playerSaves/recipient',save={version:1,revision:1,writeId:'first-save',state:cleanAccount({stage:8,wallet:{gold:100}}),updatedAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(recipient,savePath),save));
+ await assertSucceeds(getDoc(doc(recipient,savePath)));
+ await assertFails(getDoc(doc(sender,savePath)));
+ await assertFails(getDoc(doc(guest,savePath)));
+ await assertFails(setDoc(doc(sender,savePath),{...save,revision:2}));
+ await assertFails(setDoc(doc(recipient,savePath),save));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:3}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:2,state:{...save.state,stage:25}}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:2,state:{...save.state,wallet:{...save.state.wallet,gold:-1}}}));
+ await assertSucceeds(setDoc(doc(recipient,savePath),{...save,revision:2,writeId:'second-save'}));
+ await assertFails(deleteDoc(doc(recipient,savePath)));
  await assertSucceeds(getDoc(doc(guest,'wordScores/today')));
  await assertSucceeds(setDoc(doc(sender,'wordScores/own'),{uid:'sender',name:'Sender',score:100,mode:'word',date:Date.now()}));
  await assertFails(updateDoc(doc(sender,'wordScores/own'),{score:200}));

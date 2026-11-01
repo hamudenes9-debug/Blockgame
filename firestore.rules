@@ -9,6 +9,36 @@ service cloud.firestore {
     function todayStartMillis() {
       return (request.time + duration.value(3, 'h')).date().toMillis() - 10800000;
     }
+    // Private, versioned Google account backup. No paid server required.
+    function validPlayerSave() {
+      let data = request.resource.data;
+      let state = data.state;
+      return data.keys().hasOnly(['version','revision','writeId','state','updatedAt'])
+        && data.version == 1
+        && data.revision is int && data.revision >= 1
+        && data.writeId is string && data.writeId.size() > 0 && data.writeId.size() <= 100
+        && data.updatedAt == request.time
+        && state is map
+        && state.keys().hasOnly(['stage','wallet','progress','records','streak'])
+        && state.stage is int && state.stage >= 1 && state.stage <= 24
+        && state.progress is map && state.progress.size() <= 24
+        && state.records is list && state.records.size() <= 100
+        && state.streak is map && state.streak.size() <= 4
+        && state.wallet is map
+        && state.wallet.keys().hasOnly(['gold','hints','claimed','migrated'])
+        && state.wallet.gold is int && state.wallet.gold >= 0 && state.wallet.gold <= 1000000000
+        && state.wallet.hints is int && state.wallet.hints >= 0 && state.wallet.hints <= 1000000
+        && state.wallet.claimed is list && state.wallet.claimed.size() <= 24
+        && state.wallet.migrated == true;
+    }
+    match /playerSaves/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && validPlayerSave() && request.resource.data.revision == 1;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && validPlayerSave() && request.resource.data.revision == resource.data.revision + 1;
+      allow delete: if false;
+    }
     // Daily activity is derived from existing public wordScores; likes are
     // immutable and addressed by authenticated sender UID (one per day/player).
     match /communityLikes/{day}/players/{targetUid}/likes/{fromUid} {

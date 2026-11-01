@@ -98,3 +98,11 @@ Bu cihaz görünümü cihazda kalan son 100 kaydı toplar; eski sürümlerde yer
 Topluluk ekranı mevcut beğenileri doğrudan Firestore’dan dinler: son 7 İstanbul günü, gün başına en yeni 30 kayıt. İsim, gönderen UID’sinin herkese açık skor kaydından alınır; kayıt yoksa “Bir seyyah” gösterilir. Okundu durumu bu cihazda hesaba özel saklanır. Dinleyiciler ekrandan çıkınca durur; ilk açılış geçmişi, açık ekran yeni beğenileri gösterir. **Kapalı uygulamaya beğeni push bildirimi yoktur.** Günlük seri ve üç saatlik yerel hatırlatmalar korunur. Spark kotaları geçerlidir; sınırsız okuma değildir.
 
 `functions/` eski opsiyonel sunucu kodu olarak korunur, varsayılan dağıtımdan çıkarılmıştır. Yeni sürüm FCM kaydı oluşturmaz. Güncel adımlar: [FIREBASE-SETUP.md](FIREBASE-SETUP.md).
+
+## 1.7.0 — Google hesabına özel bulut oyun kaydı
+
+- Aynı Google UID’siyle farklı cihazda aşama, bulmaca ilerlemesi, cüzdan/ipucu, günlük seri ve en iyi 100 yerel kelime kaydı geri yüklenir. Dünya sıralamasının mevcut toplamları ayrı korunur; yedekten yükleme skorları tekrar göndermez.
+- Google hesapları ve misafir artık ayrı cihaz önbellekleri kullanır. İlk yükseltmede mevcut ilerleme o anda açık olan hesaba bağlanır ve yerel kopyası korunur. Önce eski/ilerlemenin bulunduğu cihazda güncelleyip eşitleyin.
+- Sürüm kontrollü Firestore transaction, belirsiz yazma sonucu için yazma kimliği ve cihazda kalıcı bekleyen kayıt. Aynı anda değişmiş cihaz kayıtları otomatik birleştirilmez; Profil’de bütün kayıt için seçim/onay istenir. Sessizce daha yeni cüzdanı ezme yoktur.
+- Son değişiklikten yaklaşık 5 saniye sonra otomatik eşitleme; giriş/açılışta kontrol ve Profil → Şimdi eşitle. İnternetsiz değişiklikler cihazda bekler. Aktif diğer cihazdaki oyuna canlı/zorunlu geri yükleme yapılmaz.
+- **Yeni `playerSaves` Firestore kuralları zorunlu.** Spark desteklenir, Blaze/Cloud Functions gerekmez; kotalar geçerlidir. Tam kurulum ve sınırlar: [FIREBASE-SETUP.md](FIREBASE-SETUP.md).
