@@ -106,11 +106,11 @@ service cloud.firestore {
     function bonusTransition(key, collection, event) {
       let before=resource.data.state.trophies.get(key,[]);
       let after=request.resource.data.state.trophies.get(key,[]);
-      let added=after.toSet().difference(before.toSet());
-      return after.hasAll(before) && (added.size()==0 || (
-        event.type in ['level','festival'] && added.size()==1 && added.hasAny([event.id])
+      return after==before || (event.type in ['level','festival']
+        && after.size()==before.size()+1 && after.hasAll(before)
+        && after.toSet().difference(before.toSet()).hasOnly([event.id])
         && getAfter(/databases/$(database)/documents/$(collection)/$(request.auth.uid)/levels/$(string(event.id))).data.grantedAt==request.time
-        && (key!='premiumFestival' || getAfter(/databases/$(database)/documents/$(collection)/$(request.auth.uid)/levels/$(string(event.id))).data.festival==true)));
+        && (key!='premiumFestival' || getAfter(/databases/$(database)/documents/$(collection)/$(request.auth.uid)/levels/$(string(event.id))).data.festival==true));
     }
     function rewardTransition() {
       let old=resource.data.state;
@@ -120,9 +120,9 @@ service cloud.firestore {
       return next.journey.claimed.hasAll(old.journey.claimed)
         && (!old.get('cosmeticsPremium',false) || next.get('cosmeticsPremium',false))
         && (event.type=='quest' ? questTransition(event.id,old,next,added) : added.size()==0)
-        && bonusTransition('festival','festivalRewards',event)
+        && (old.trophies==next.trophies || (bonusTransition('festival','festivalRewards',event)
         && bonusTransition('premium','premiumRewards',event)
-        && bonusTransition('premiumFestival','premiumRewards',event);
+        && bonusTransition('premiumFestival','premiumRewards',event)));
     }
     function todayInTurkey() {
       let t = request.time + duration.value(3, 'h');
@@ -170,6 +170,10 @@ service cloud.firestore {
         && ((a.hat>=6 && premium) || a.hat < 4 || (a.hat == 4 && count >= 15) || (a.hat == 5 && count >= 30));
     }
     // Private, versioned UID account backup. No paid server required.
+    function unchanged(key) {
+      return exists(/databases/$(database)/documents/playerSaves/$(request.auth.uid))
+        && request.resource.data.state.get(key,null)==resource.data.state.get(key,null);
+    }
     function validPlayerSave() {
       let data = request.resource.data;
       let state = data.state;
@@ -190,8 +194,9 @@ service cloud.firestore {
         && state.wallet.hints is int && state.wallet.hints >= 0 && state.wallet.hints <= 1000000
         && state.wallet.claimed is list && state.wallet.claimed.size() <= 124
         && state.wallet.migrated == true
-        && validTrophies(state.trophies) && validAvatar(state.avatar)
-        && validJourney(state.journey) && ownedAvatar(state.avatar, state.journey.claimed.size(),state.get('cosmeticsPremium',false))
+        && (unchanged('trophies') || validTrophies(state.trophies)) && (unchanged('avatar') || validAvatar(state.avatar))
+        && (unchanged('journey') || validJourney(state.journey))
+        && (unchanged('avatar') && unchanged('journey') && unchanged('cosmeticsPremium') || ownedAvatar(state.avatar, state.journey.claimed.size(),state.get('cosmeticsPremium',false)))
         && state.get('cosmeticsPremium',false) is bool
         && (!state.get('cosmeticsPremium',false) || exists(/databases/$(database)/documents/premiumCosmetics/$(request.auth.uid)));
     }
