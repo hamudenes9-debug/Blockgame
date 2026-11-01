@@ -191,7 +191,7 @@ service cloud.firestore {
         && a.face is int && a.face >= 0 && a.face <= 3
         && a.hat is int && a.hat >= 0 && a.hat <= 9;
     }
-    function trophyUnits(t) { return t.claimed.size()+t.get('festival',[]).size()+t.get('premium',[]).size()+t.get('premiumFestival',[]).size()+t.get('eventPoints',0)/20; }
+    function trophyUnits(t) { return t.claimed.size()+t.get('festival',[]).size()+t.get('premium',[]).size()+t.get('premiumFestival',[]).size()+t.get('eventPoints',0) / 20; }
     function validSubset(values, base) { return values is list && values.size()<=124 && base.hasAll(values); }
     function validTrophies(t) {
       let festival=t.get('festival',[]);
