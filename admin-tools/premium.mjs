@@ -1,0 +1,7 @@
+// Run only on a trusted administrator machine. Never put this credential in APK.
+import {initializeApp,cert} from 'firebase-admin/app';
+import {getAuth} from 'firebase-admin/auth';
+import {getFirestore,Timestamp,FieldValue} from 'firebase-admin/firestore';
+async function main(){const [uid,action]=process.argv.slice(2);if(!uid||uid.includes('/')||!['grant','revoke'].includes(action))throw Object.assign(Error(),{code:'usage-node-premium.mjs-UID-grant-or-revoke'});const credential=JSON.parse(process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT||'{}');if(credential.project_id!=='blockgame-46ae9')throw Object.assign(Error(),{code:'wrong-project-or-missing-secret'});initializeApp({credential:cert(credential)});const user=await getAuth().getUser(uid);if(!user.providerData.length)throw Object.assign(Error(),{code:'anonymous-account-not-premium'});const ref=getFirestore().doc('premium/'+uid);if(action==='revoke'){await ref.set({enabled:false,updatedAt:FieldValue.serverTimestamp()},{merge:true});console.log('Premium kapatıldı:',uid);return;}
+ let expires;await getFirestore().runTransaction(async tx=>{const old=(await tx.get(ref)).data();expires=new Date(Math.max(Date.now(),old?.enabled&&old.expiresAt?.toMillis?.()||0));expires.setUTCFullYear(expires.getUTCFullYear()+1);tx.set(ref,{enabled:true,expiresAt:Timestamp.fromDate(expires),updatedAt:FieldValue.serverTimestamp()});});console.log('Premium etkin:',uid,'Bitiş:',expires.toISOString());}
+main().catch(e=>{console.error('İşlem başarısız:',e.code||'configuration-error');process.exitCode=1;});

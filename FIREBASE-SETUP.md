@@ -1,6 +1,11 @@
 # Kelime Seyyahı 1.8.0 — Google hesabına bağlı bulut kaydı ve ücretsiz beğeniler
 
-## Güncel 1.9.0 — Kuralların yeniden yayımlanması gerekiyor
+## Güncel 1.10.0 — Canlı kontrol kurulumu zorunlu
+
+[**LIVE-SETUP.md**](LIVE-SETUP.md): Anonymous sağlayıcıyı etkinleştir, yeni `firestore.rules` (şema 4) yayımla, GitHub Actions yönetici secret’ını güvenle tanımla ve `operations/current` ayarını yayımla. Kod/derleme bu üretim adımlarını senin adına tamamlamaz. Kurulum yoksa zorunlu internet kapısı oyunu bekletir. [Premium verme rehberi](PREMIUM-GUIDE.md).
+
+
+## Önceki 1.9.0 — Kuralların yeniden yayımlanması gerekiyor
 
 Özel kayıt şeması 3 oldu: 124 aşama, görev takvimi ve yeni avatar seçenekleri. **Bu sürümün `firestore.rules` dosyasının tamamını Firestore → Rules → Publish ile yayımla; tüm cihazları 1.9.0’a yükselt.** Eski şema 2 yazımları yeni kurallarda reddedilir. Firebase Authentication sağlayıcılarında değişiklik yok. Ayrıntılı güvenli geçiş: [MONTH-UPDATE.md](MONTH-UPDATE.md). Aşağıdaki eski sürüm notları tarihsel kurulum bilgisidir.
 

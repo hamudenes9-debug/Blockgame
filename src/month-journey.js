@@ -5,7 +5,7 @@ const int=(n,max)=>Number.isFinite(n)?Math.max(0,Math.min(max,Math.floor(n))):0;
 const ids=(v,max)=>Array.isArray(v)?[...new Set(v.filter(n=>Number.isInteger(n)&&n>0&&n<=max))].sort((a,b)=>a-b):[];
 const validDay=s=>typeof s==='string'&&/^20\d\d-\d\d-\d\d$/.test(s)&&!Number.isNaN(Date.parse(s+'T00:00:00Z'))&&new Date(s+'T00:00:00Z').toISOString().slice(0,10)===s;
 export function cleanJourney(raw={}){const entries={};for(let day=1;day<=30;day++){const e=raw?.entries?.[day];if(e&&typeof e==='object')entries[day]={levels:ids(e.levels,LEVELS.length),words:int(e.words,2000),clean:int(e.clean,LEVELS.length)};}return {start:validDay(raw?.start)?raw.start:null,active:Math.max(1,int(raw?.active,30)),claimed:ids(raw?.claimed,30),entries};}
-export function openDays(raw,date=new Date()){const j=cleanJourney(raw);if(!j.start)return 0;return Math.max(0,Math.min(30,1+Math.floor((Date.parse(dayKey(date)+'T00:00:00Z')-Date.parse(j.start+'T00:00:00Z'))/86400000)));}
+export function openDays(raw,date=new Date()){const j=cleanJourney(raw);if(!j.start||!Number.isFinite(date.getTime()))return 0;return Math.max(0,Math.min(30,1+Math.floor((Date.parse(dayKey(date)+'T00:00:00Z')-Date.parse(j.start+'T00:00:00Z'))/86400000)));}
 export function startJourney(raw,date=new Date()){const j=cleanJourney(raw);if(!j.start)j.start=dayKey(date);return j;}
 export function selectQuest(raw,day,date=new Date()){const j=cleanJourney(raw);if(Number.isInteger(day)&&day>=1&&day<=openDays(j,date))j.active=day;return j;}
 export function questProgress(raw,day){const j=cleanJourney(raw),q=QUESTS[day-1],e=j.entries[day];if(!q||!e)return 0;return Math.min(q.target,q.kind==='puzzles'?e.levels.length:q.kind==='words'?e.words:e.clean);}

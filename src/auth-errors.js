@@ -16,5 +16,5 @@ export function describeAuthError(error, stage) {
   else if(/network|NETWORK_ERROR/i.test(detail))message=provider+' bağlantısı kurulamadı. İnternet bağlantını kontrol edip tekrar dene.';
   else if(/10:|DEVELOPER_ERROR|12500|configuration/i.test(detail))message=provider+' giriş yapılandırması reddedildi. Bu hata tek başına parmak izinin eksik olduğunu göstermez; OAuth istemcisi ve Firebase ayarları incelenmeli.';
   else if(/operation-not-allowed/i.test(detail))message='Firebase bu giriş yöntemine izin vermiyor. '+provider+' sağlayıcısının etkinliği kontrol edilmeli.';
-  return `${message} (Aşama: ${stage}; Kod: ${code}; Sürüm: 1.9.0)`;
+  return `${message} (Aşama: ${stage}; Kod: ${code}; Sürüm: 1.10.0)`;
 }

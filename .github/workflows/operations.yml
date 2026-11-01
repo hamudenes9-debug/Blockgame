@@ -1,0 +1,42 @@
+name: Live announcements and holiday calendar
+on:
+  workflow_dispatch:
+  push:
+    branches: [arena/d699cecb-blockgame]
+    paths: ['operations/**', 'admin-tools/**', '.github/workflows/operations.yml']
+  schedule:
+    - cron: '*/30 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: seyyah-live-operations
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: arena/d699cecb-blockgame
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin-tools/package-lock.json
+      - run: npm ci --prefix admin-tools --ignore-scripts
+      - name: Check administrator setup
+        id: setup
+        env:
+          FIREBASE_ADMIN_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_ADMIN_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_ADMIN_SERVICE_ACCOUNT" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Kurulum bekliyor: yönetici secret eklenmedi. Canlı ayar ve bildirim YAYIMLANMADI. LIVE-SETUP.md dosyasını izleyin." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish controls and send notifications
+        if: steps.setup.outputs.configured == 'true'
+        env:
+          FIREBASE_ADMIN_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_ADMIN_SERVICE_ACCOUNT }}
+        run: npm run publish --prefix admin-tools

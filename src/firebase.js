@@ -3,7 +3,7 @@ import {githubSignIn} from './github-sign-in.js';
 import {collectScoreTotals} from './leaderboard.js';
 import {withTimeout} from './cloud-status.js';
 import {initializeApp} from 'firebase/app';
-import {getAuth, GoogleAuthProvider, GithubAuthProvider, OAuthProvider, signInWithPopup, signInWithCredential, signOut} from 'firebase/auth';
+import {getAuth, signInAnonymously, getIdTokenResult, GoogleAuthProvider, GithubAuthProvider, OAuthProvider, signInWithPopup, signInWithCredential, signOut} from 'firebase/auth';
 import {getFirestore, collection, addDoc, query, orderBy, limit, startAfter, documentId, getDocsFromServer} from 'firebase/firestore';
 import {Capacitor} from '@capacitor/core';
 import {FirebaseAuthentication} from '@capacitor-firebase/authentication';
@@ -71,4 +71,14 @@ export async function requireCloudUser(){
  await withTimeout(auth.authStateReady());
  if(!auth.currentUser)throw cloudError('unauthenticated');
  return {db,user:auth.currentUser};
+}
+
+let anonymousAttempt=null;
+export async function freshIdentity(){
+ if(!auth)throw Error('Firebase web yapılandırması gerekiyor.');
+ await auth.authStateReady();
+ if(!auth.currentUser){if(!anonymousAttempt)anonymousAttempt=signInAnonymously(auth).finally(()=>anonymousAttempt=null);await anonymousAttempt;}
+ const user=auth.currentUser;let result;try{result=await withTimeout(getIdTokenResult(user,true),7000);}catch(error){if(auth.currentUser&&auth.currentUser.uid!==user.uid)throw Error('Hesap değişti.');throw error;}
+ if(auth.currentUser?.uid!==user.uid)throw Error('Hesap değişti.');
+ return {uid:user.uid,anonymous:user.isAnonymous,issuedAt:Date.parse(result.issuedAtTime)};
 }

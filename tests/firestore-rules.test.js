@@ -5,12 +5,12 @@ import {dayWindow} from '../shared/practice.js';
 
 test('Firestore rules: immutable daily likes, private tokens/inbox and existing scores', {skip:!process.env.FIRESTORE_EMULATOR_HOST,timeout:60000},async()=>{
  const {initializeTestEnvironment,assertSucceeds,assertFails}=await import('@firebase/rules-unit-testing');
- const {doc,getDoc,setDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch}=await import('firebase/firestore');
+ const {doc,getDoc,setDoc,updateDoc,deleteDoc,serverTimestamp,Timestamp,writeBatch}=await import('firebase/firestore');
  const env=await initializeTestEnvironment({projectId:'demo-kelime-seyyahi',firestore:{rules:readFileSync(new URL('../firestore.rules',import.meta.url),'utf8')}});
  try{
  await env.clearFirestore();const {day,start}=dayWindow();
- await env.withSecurityRulesDisabled(async context=>{const db=context.firestore();await setDoc(doc(db,'wordScores/today'),{uid:'recipient',mode:'word',name:'Ümit',score:100,date:Date.now()});await setDoc(doc(db,'wordScores/yesterday'),{uid:'recipient',mode:'word',name:'Ümit',score:100,date:start-1});await setDoc(doc(db,'userNotifications/recipient/items/notice'),{body:'Bir seyyah seni beğendi.',day,read:false,createdAt:serverTimestamp()});});
- const sender=env.authenticatedContext('sender').firestore(),recipient=env.authenticatedContext('recipient').firestore(),other=env.authenticatedContext('other').firestore(),guest=env.unauthenticatedContext().firestore();
+ await env.withSecurityRulesDisabled(async context=>{const db=context.firestore();await setDoc(doc(db,'operations/current'),{minimumSchema:4,holidaysEnabled:false,holidayWindows:[]});await setDoc(doc(db,'wordScores/today'),{uid:'recipient',mode:'word',name:'Ümit',score:100,date:Date.now()});await setDoc(doc(db,'wordScores/yesterday'),{uid:'recipient',mode:'word',name:'Ümit',score:100,date:start-1});await setDoc(doc(db,'userNotifications/recipient/items/notice'),{body:'Bir seyyah seni beğendi.',day,read:false,createdAt:serverTimestamp()});});
+ const sender=env.authenticatedContext('sender',{iat:Math.floor(Date.now()/1000)}).firestore(),recipient=env.authenticatedContext('recipient',{iat:Math.floor(Date.now()/1000)}).firestore(),other=env.authenticatedContext('other',{iat:Math.floor(Date.now()/1000)}).firestore(),guest=env.unauthenticatedContext().firestore();
  const path=`communityLikes/${day}/players/recipient/likes/sender`,data={fromUid:'sender',toUid:'recipient',day,scoreId:'today',createdAt:serverTimestamp()};
  await assertSucceeds(setDoc(doc(sender,path),data));
  await assertFails(setDoc(doc(sender,path),data));
@@ -37,7 +37,7 @@ test('Firestore rules: immutable daily likes, private tokens/inbox and existing 
  await assertFails(deleteDoc(doc(recipient,inboxPath)));
  await assertFails(setDoc(doc(sender,'userNotifications/recipient/items/fake'),{body:'spam',read:false}));
  await assertFails(getDoc(doc(other,inboxPath)));
- const savePath='playerSaves/recipient',save={version:3,revision:1,writeId:'first-save',state:cleanAccount({stage:8,wallet:{gold:100}}),updatedAt:serverTimestamp()};
+ const savePath='playerSaves/recipient',save={version:4,revision:1,writeId:'first-save',state:cleanAccount({stage:8,wallet:{gold:100}}),updatedAt:serverTimestamp()};
  await assertSucceeds(setDoc(doc(recipient,savePath),save));
  await assertSucceeds(getDoc(doc(recipient,savePath)));
  await assertFails(getDoc(doc(sender,savePath)));
@@ -63,10 +63,33 @@ test('Firestore rules: immutable daily likes, private tokens/inbox and existing 
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4,state:{...save.state,journey:{...save.state.journey,claimed:[1,1]}}}));
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4,state:{...save.state,journey:{...save.state.journey,claimed:[31]}}}));
  const expanded=cleanAccount({stage:124,trophies:{claimed:Array.from({length:124},(_,i)=>i+1),prestige:2},avatar:{hair:5,outfit:5,hat:5},journey:{start:'2026-11-01',claimed:Array.from({length:30},(_,i)=>i+1)}});
- await assertSucceeds(setDoc(doc(recipient,savePath),{...save,revision:4,state:expanded}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:4,state:expanded}));
  await assertFails(deleteDoc(doc(recipient,savePath)));
  await assertSucceeds(getDoc(doc(guest,'wordScores/today')));
  await assertSucceeds(setDoc(doc(sender,'wordScores/own'),{uid:'sender',name:'Sender',score:100,mode:'word',date:Date.now()}));
  await assertFails(updateDoc(doc(sender,'wordScores/own'),{score:200}));
+ }finally{await env.cleanup();}
+});
+
+test('Live security: premium ownership, fresh tokens, reward dates, receipts and minimum schema',{skip:!process.env.FIRESTORE_EMULATOR_HOST,timeout:60000},async()=>{
+ const {initializeTestEnvironment,assertSucceeds,assertFails}=await import('@firebase/rules-unit-testing');
+ const {doc,getDoc,setDoc,updateDoc,serverTimestamp,Timestamp,writeBatch}=await import('firebase/firestore');
+ const env=await initializeTestEnvironment({projectId:'demo-kelime-seyyahi',firestore:{rules:readFileSync(new URL('../firestore.rules',import.meta.url),'utf8')}});
+ try{await env.clearFirestore();const now=Date.now(),iat=Math.floor(now/1000),day=dayWindow().day;
+ const owner=env.authenticatedContext('alice',{iat}).firestore(),other=env.authenticatedContext('bob',{iat}).firestore(),stale=env.authenticatedContext('alice',{iat:iat-120}).firestore();
+ let state=cleanAccount({wallet:{gold:100,hints:2},journey:{start:day,entries:{1:{levels:[1,2],words:10,clean:2}}}});
+ const save={version:4,revision:1,writeId:'seed',state,updatedAt:serverTimestamp()};
+ await env.withSecurityRulesDisabled(async c=>{const db=c.firestore();await setDoc(doc(db,'operations/current'),{minimumSchema:4,holidaysEnabled:true,holidayWindows:[{start:Timestamp.fromMillis(now-60000),end:Timestamp.fromMillis(now+3600000)}]});await setDoc(doc(db,'premium/alice'),{enabled:true,expiresAt:Timestamp.fromMillis(now+86400000)});await setDoc(doc(db,'playerSaves/alice'),save);});
+ await assertSucceeds(getDoc(doc(owner,'premium/alice')));await assertFails(getDoc(doc(other,'premium/alice')));await assertFails(getDoc(doc(stale,'premium/alice')));await assertFails(setDoc(doc(owner,'premium/alice'),{enabled:true,expiresAt:Timestamp.fromMillis(now+1e10)}));
+ await assertSucceeds(setDoc(doc(owner,'journeyClocks/alice'),{day,startedAt:serverTimestamp()}));await assertFails(updateDoc(doc(owner,'journeyClocks/alice'),{startedAt:Timestamp.fromMillis(0)}));
+ const receipt={uid:'alice',day:1,gold:40,hints:1,levels:[1,2],words:10,clean:2,grantedAt:serverTimestamp()};state=cleanAccount({...state,wallet:{...state.wallet,gold:140,hints:3},journey:{...state.journey,claimed:[1]}});const paid={...save,revision:2,event:{type:'quest',id:1},state};const first=writeBatch(owner);first.set(doc(owner,'questRewards/alice/days/1'),receipt);first.set(doc(owner,'playerSaves/alice'),paid);await assertSucceeds(first.commit());
+ await assertFails(setDoc(doc(owner,'questRewards/alice/days/1'),receipt));await assertFails(setDoc(doc(owner,'playerSaves/alice'),{...paid,revision:3,state:{...state,wallet:{...state.wallet,gold:180,hints:4}}}));
+ const future=writeBatch(owner);future.set(doc(owner,'questRewards/alice/days/2'),{...receipt,day:2,words:14});future.set(doc(owner,'playerSaves/alice'),{...paid,revision:3,event:{type:'quest',id:2},state:{...state,journey:{...state.journey,start:'2000-01-01',claimed:[1,2]},wallet:{...state.wallet,gold:180,hints:4}}});await assertFails(future.commit());
+ state=cleanAccount({...state,trophies:{claimed:[1],festival:[1]}});const festival=writeBatch(owner);festival.set(doc(owner,'festivalRewards/alice/levels/1'),{uid:'alice',level:1,grantedAt:serverTimestamp()});festival.set(doc(owner,'playerSaves/alice'),{...save,revision:3,event:{type:'festival',id:1},state});await assertSucceeds(festival.commit());
+ await assertFails(setDoc(doc(owner,'festivalRewards/alice/levels/1'),{uid:'alice',level:1,grantedAt:serverTimestamp()}));await assertFails(setDoc(doc(owner,'playerSaves/alice'),{...save,revision:4,state:{...state,trophies:{season:1,claimed:[1],prestige:0}}}));
+ await env.withSecurityRulesDisabled(c=>updateDoc(doc(c.firestore(),'operations/current'),{holidaysEnabled:false}));
+ const closed=writeBatch(owner);closed.set(doc(owner,'festivalRewards/alice/levels/2'),{uid:'alice',level:2,grantedAt:serverTimestamp()});closed.set(doc(owner,'playerSaves/alice'),{...save,revision:4,event:{type:'festival',id:2},state:cleanAccount({...state,trophies:{claimed:[1,2],festival:[1,2]}})});await assertFails(closed.commit());
+ await assertFails(setDoc(doc(owner,'playerSaves/alice'),{...save,version:3,revision:4,state}));await assertFails(setDoc(doc(stale,'playerSaves/alice'),{...save,revision:4,state}));
+ await env.withSecurityRulesDisabled(c=>updateDoc(doc(c.firestore(),'operations/current'),{minimumSchema:5}));await assertFails(setDoc(doc(owner,'playerSaves/alice'),{...save,revision:4,state}));
  }finally{await env.cleanup();}
 });

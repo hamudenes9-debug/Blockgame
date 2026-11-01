@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [arena/d699cecb-blockgame]
+    paths-ignore: ['operations/**', 'admin-tools/**', '.github/workflows/operations.yml', '**/*.md', 'download-site/**']
 jobs:
   apk:
     runs-on: ubuntu-22.04
@@ -82,4 +83,4 @@ jobs:
             echo "Release $TAG already exists. Bump the version for a new public release."
             exit 1
           fi
-          gh release create "$TAG" Kelime-Seyyahi.apk Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --title "Kelime Seyyahı $VERSION" --notes "1.9.0: 60 yeni bölüm, Ankara/Eskişehir/Bursa/Antalya/Trabzon/Çanakkale ile toplam 124 bölüm ve 16 durak. 30 günlük kişisel görev takvimi, tek seferlik altın/ipucu ödülleri, görevlerle açılan 6 avatar seçeneği ve 8 başarı rozeti. Mevcut kupa/altın/ilerleme korunur; görevler kupa vermez. ÖNEMLİ: Bu sürümün firestore.rules dosyasını Firebase Console'da Publish edin ve tüm cihazları 1.9.0'a yükseltin; kayıt şeması 3 oldu. Eski sürümlerin bulut yazımları yeni kurallarla engellenir. MONTH-UPDATE.md kurulum/kayıt koruma adımlarını içerir. Mevcut uygulamayı silmeden üzerine kurun. Google/GitHub/Yahoo ve misafir girişleri korunur. Blokko.apk aynı APK'nın eski güncelleyiciler için takma adıdır. Destek: Tirezteknoloji@gmail.com."
+          gh release create "$TAG" Kelime-Seyyahi.apk Blokko.apk SHA256SUMS.txt --target "$GITHUB_SHA" --title "Kelime Seyyahı $VERSION" --notes "1.10.0: Premium Seyyah (99,99 TL/yıl), UID bazlı yönetici aktivasyonu ve sınırsız Harf aç; GitHub canlı duyuruları, bakım/minimum sürüm, zorunlu internet, taze Firebase hesap kontrolü, sunucu zamanlı görev makbuzları ve Bayram Bereketi. ÖNEMLİ: Kurulum yapılmadan yeni APK erişim kontrolünde bekler. LIVE-SETUP.md adımlarını tamamlayın: Anonymous sağlayıcı, şema 4 firestore.rules, güvenli GitHub Actions yönetici secret ve operations/current yayını. Premium verme: PREMIUM-GUIDE.md. Üretim ayarları bu derleme tarafından otomatik kurulmaz. Zamanlanmış workflow varsayılan dalda olmalıdır. Mevcut 124 bölüm ve kayıtlar korunur; uygulamayı silmeden üzerine kurun. Gerçek OAuth/FCM/Premium fiziksel cihaz testi yönetici kurulumundan sonra yapılmalı. Blokko.apk aynı APK takma adıdır. Destek: Tirezteknoloji@gmail.com."
