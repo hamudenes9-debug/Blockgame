@@ -96,3 +96,7 @@ npm run android:sync
 ```
 
 CI Firebase’e dağıtım yapmaz ve ücretli plan açmaz. Canlı hesaplarla teslimat ayrıca iki cihazda denenmelidir.
+
+## 1.8.2 — Yahoo
+
+Yahoo sağlayıcısı için [YAHOO-LOGIN.md](YAHOO-LOGIN.md) belgesine bak. Firebase’de eklediğin sağlayıcının etkin/kaydedilmiş olması ve Yahoo callback adresinin Firebase’dekiyle eşleşmesi gerekir. Client secret uygulamaya eklenmez. Mevcut Google/GitHub sağlayıcılarını açık bırak.

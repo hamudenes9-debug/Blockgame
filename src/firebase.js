@@ -1,8 +1,9 @@
+import {yahooSignIn} from './yahoo-sign-in.js';
 import {githubSignIn} from './github-sign-in.js';
 import {collectScoreTotals} from './leaderboard.js';
 import {withTimeout} from './cloud-status.js';
 import {initializeApp} from 'firebase/app';
-import {getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signInWithCredential, signOut} from 'firebase/auth';
+import {getAuth, GoogleAuthProvider, GithubAuthProvider, OAuthProvider, signInWithPopup, signInWithCredential, signOut} from 'firebase/auth';
 import {getFirestore, collection, addDoc, query, orderBy, limit, startAfter, documentId, getDocsFromServer} from 'firebase/firestore';
 import {Capacitor} from '@capacitor/core';
 import {FirebaseAuthentication} from '@capacitor-firebase/authentication';
@@ -16,10 +17,11 @@ let auth,db;
 if(configured){const app=initializeApp(config);auth=getAuth(app);db=getFirestore(app);}
 export {configured};
 export async function login(provider='google'){
-  if(!['google','github'].includes(provider))throw Error('Desteklenmeyen giriş yöntemi.');
-  if(!configured)throw Error('Web hesap girişi henüz yapılandırılmadı. Android uygulamasında Google veya GitHub ile giriş yapabilirsin.');
+  if(!['google','github','yahoo'].includes(provider))throw Error('Desteklenmeyen giriş yöntemi.');
+  if(!configured)throw Error('Web hesap girişi henüz yapılandırılmadı. Android uygulamasında Google, GitHub veya Yahoo ile giriş yapabilirsin.');
   let stage=native?'Android Google hesap seçimi':'Web Google girişi';
   try{
+    if(provider==='yahoo')return await yahooSignIn({native,nativeAuth:FirebaseAuthentication,auth,makeProvider:()=>new OAuthProvider('yahoo.com'),popup:signInWithPopup,credentialSignIn:signInWithCredential,clearJS:signOut,onStage:value=>stage=value});
     if(provider==='github')return await githubSignIn({native,nativeAuth:FirebaseAuthentication,auth,makeProvider:()=>new GithubAuthProvider(),makeCredential:token=>GithubAuthProvider.credential(token),popup:signInWithPopup,credentialSignIn:signInWithCredential,clearJS:signOut,onStage:value=>stage=value});
     if(native){
       const result=await nativeGoogleSignIn(FirebaseAuthentication);

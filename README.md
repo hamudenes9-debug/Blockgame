@@ -124,3 +124,7 @@ Topluluk ekranı mevcut beğenileri doğrudan Firestore’dan dinler: son 7 İst
 - Token veya Client secret uygulama koduna/özel yerel kayda yazılmaz. Çift giriş tıklamaları engellenir; iptal ve sağlayıcı çakışmaları ayrı açıklanır.
 - UID bazlı kayıt korunur; **Google ve GitHub hesapları otomatik birleştirilmez**. Mevcut ilerleme için aynı sağlayıcı/hesap kullanılmalı. Firestore kuralları değişmedi.
 - Firebase/GitHub sağlayıcı ayarları, callback ve güvenli secret rotasyonu: [GITHUB-LOGIN.md](GITHUB-LOGIN.md). Canlı OAuth/gerçek Android doğrulaması kullanıcı cihazında tamamlanmalıdır.
+
+## 1.8.2 — Yahoo ve Google logosu
+
+Yahoo ile giriş eklendi; Google, GitHub ve misafir girişleri korunur. Google düğmesi artık dört renkli yerel SVG logo kullanır. Yahoo profil etiketi, oturum geri yükleme ve UID bazlı hesap ayrımı desteklenir; otomatik hesap birleştirme yapılmaz. Kurulum ve gerçek cihaz kontrol listesi: [YAHOO-LOGIN.md](YAHOO-LOGIN.md). Firestore kuralları ve paket/imza değiştirilmedi.
