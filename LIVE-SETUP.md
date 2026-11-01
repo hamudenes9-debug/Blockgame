@@ -89,3 +89,8 @@ Canlıya almadan önce fiziksel Android cihazında: yeni kurulum + anonim kontro
 
 ### Kural değerlendirme sınırı
 Yayımlayıcı `operations/current.levelIds` alanını sabit 1–124 listesi olarak üretir. Kurallar bölüm kimliklerini bu yalnızca yöneticinin yazabildiği listeyle doğrular; uzun liste sabitlerini her atomik işlemde yeniden değerlendirerek Firestore’un 1.000 ifade sınırını aşmaz. Bu alanı elle silmeyin/değiştirmeyin; eksikse yayım işini yeniden çalıştırın.
+
+### APK’yı oyunculara açma
+Yeni APK sürümleri önce GitHub **Pre-release** olarak oluşturulur. Bu sırada `/releases/latest` üzerinden güncelleme kontrolü yapan mevcut oyunculara zorlanmaz. Yukarıdaki canlı kurulum ve fiziksel cihaz kontrol listesi tamamlanınca sürümün GitHub düzenleme ekranında **Pre-release** işaretini kaldırıp **Latest release** olarak işaretleyin. Yönetici CLI karşılığı: `gh release edit v1.10.0 --prerelease=false --latest`. Bu işlem bu güncelleme sırasında yapılmadı.
+
+Aynı sürüm numarasıyla tekrar derleme mevcut APK’yı değiştirmez: CI test/derleme çıktısını artifact olarak saklar, yeni release yayımlamadan geçer. Uygulama kodu değişikliklerini dağıtmak için sürüm numarasını artırın.
