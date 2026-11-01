@@ -8,3 +8,12 @@ export function mergeAnnouncements(source, current=[]){
  if(new Set(merged.map(n=>n.id)).size!==merged.length)throw Error('Tekrarlanan duyuru kimliği');
  return merged;
 }
+
+// Explicit manual maintenance remains authoritative until /bakım github.
+export function mergeMaintenance(source, current={}){
+ const manual=current.maintenanceOverride===true;
+ const maintenance=manual?current.maintenance:source;
+ if(typeof maintenance?.enabled!=='boolean')throw Error('Geçersiz bakım ayarı');
+ for(const [key,limit] of [['message',1000],['until',100]])if(maintenance[key]!==undefined&&(typeof maintenance[key]!=='string'||maintenance[key].length>limit))throw Error('Geçersiz bakım açıklaması');
+ return {maintenance:{enabled:maintenance.enabled,message:maintenance.message||'',until:maintenance.until||''},maintenanceOverride:manual};
+}

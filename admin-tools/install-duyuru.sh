@@ -12,7 +12,7 @@ _ks_install_duyuru() {
   }
   mkdir -p "$directory" || return 1
   temporary=$(mktemp -d "$directory/.commands.XXXXXX") || return 1
-  for name in duyuru.py bildirim.py; do
+  for name in duyuru.py bildirim.py bakim.py; do
     if ! curl -fsSL "https://raw.githubusercontent.com/hamudenes9-debug/Blockgame/$ref/admin-tools/$name" -o "$temporary/$name"; then
       rm -rf "$temporary"
       return 1
@@ -23,7 +23,7 @@ _ks_install_duyuru() {
     fi
     chmod 600 "$temporary/$name" || return 1
   done
-  for name in duyuru.py bildirim.py; do
+  for name in duyuru.py bildirim.py bakim.py; do
     mv "$temporary/$name" "$directory/$name" || return 1
   done
   rmdir "$temporary" || return 1
@@ -48,6 +48,22 @@ function /Bildirim() {
 }
 BLOCK
   fi
+  if ! grep -Fq '# Kelime Seyyahi /bakim command v1' "$HOME/.bashrc" 2>/dev/null; then
+    cat >> "$HOME/.bashrc" <<'BLOCK' || return 1
+
+# Kelime Seyyahi /bakim command v1
+function /bakım() {
+  python3 "$HOME/.local/share/kelime-seyyahi/bakim.py" "$@"
+}
+function /bakim() { /bakım "$@"; }
+function /Bakım() { /bakım "$@"; }
+BLOCK
+  fi
+  function /bakım() {
+    python3 "$HOME/.local/share/kelime-seyyahi/bakim.py" "$@"
+  }
+  function /bakim() { /bakım "$@"; }
+  function /Bakım() { /bakım "$@"; }
   function /bildirim() {
     python3 "$HOME/.local/share/kelime-seyyahi/bildirim.py" "$@"
   }
@@ -55,7 +71,7 @@ BLOCK
   function /Duyuru() {
     python3 "$HOME/.local/share/kelime-seyyahi/duyuru.py" "$@"
   }
-  printf '%s\n' 'KURULDU: /Duyuru ve /bildirim komutları hazır.' 'Yeni Cloud Shell Bash oturumlarında da kullanılabilir. Kurulum duyuru göndermez.'
+  printf '%s\n' 'KURULDU: /Duyuru, /bildirim ve /bakım komutları hazır.' 'Yeni Cloud Shell Bash oturumlarında da kullanılabilir. Kurulum duyuru/bildirim göndermez ve bakımı açmaz.'
 }
 if _ks_install_duyuru "$@"; then
   unset -f _ks_install_duyuru

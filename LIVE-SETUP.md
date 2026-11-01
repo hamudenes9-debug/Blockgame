@@ -114,3 +114,7 @@ Premium ilk tamamlamada doğrulanamıyorsa standart ödül verilir; çevrimdış
 ## Cloud Shell’den hızlı duyuru
 
 `/Duyuru 'Metin'` komutunun kurulumu ve kullanım sınırları: [DUYURU-REHBERI.md](DUYURU-REHBERI.md). Oyun içi duyurudur; push göndermez. Komutun `shell-` kimlikli duyuruları GitHub yayıncısında korunur. Liste dolarsa eski duyurular otomatik silinmez.
+
+## Cloud Shell bakım önceliği
+
+`/bakım aç` ve `/bakım kapat`, `maintenanceOverride: true` ile manuel öncelik oluşturur; GitHub yayıncısı bunu korur. Tekrar dosyadan yönetmek için `/bakım github` kullan. Bu komut GitHub'daki açık/kapalı değerini hemen uygular. [Bakım komutları](BAKIM-REHBERI.md).

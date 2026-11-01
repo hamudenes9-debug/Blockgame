@@ -52,3 +52,7 @@ Komutu kaldırmak için `.bashrc` içindeki `# Kelime Seyyahi /Duyuru command v1
 ## Telefon bildirimi de göndermek için
 
 Güncel kurucu `/bildirim 'Metin'` ve `/Bildirim 'Metin'` komutlarını da yükler. Bu ayrı komut oyun içi duyuruya ek olarak kayıtlı Android cihazlarına FCM push gönderir. `/Duyuru` davranışı değişmez. Önceki kurulumu yaptıysan yeni kaynak kimliğiyle bir kez yeniden kur. Detaylar ve teslimat sınırları: [BILDIRIM-REHBERI.md](BILDIRIM-REHBERI.md).
+
+## Bakım yönetimi
+
+Güncel kurucu `/bakım aç 'Mesaj'`, `/bakım kapat` ve `/bakım durum` komutlarını da ekler. Kurulum bakımı açmaz. Ayrıntılar: [BAKIM-REHBERI.md](BAKIM-REHBERI.md).
