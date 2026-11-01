@@ -106,3 +106,13 @@ Topluluk ekranı mevcut beğenileri doğrudan Firestore’dan dinler: son 7 İst
 - Sürüm kontrollü Firestore transaction, belirsiz yazma sonucu için yazma kimliği ve cihazda kalıcı bekleyen kayıt. Aynı anda değişmiş cihaz kayıtları otomatik birleştirilmez; Profil’de bütün kayıt için seçim/onay istenir. Sessizce daha yeni cüzdanı ezme yoktur.
 - Son değişiklikten yaklaşık 5 saniye sonra otomatik eşitleme; giriş/açılışta kontrol ve Profil → Şimdi eşitle. İnternetsiz değişiklikler cihazda bekler. Aktif diğer cihazdaki oyuna canlı/zorunlu geri yükleme yapılmaz.
 - **Yeni `playerSaves` Firestore kuralları zorunlu.** Spark desteklenir, Blaze/Cloud Functions gerekmez; kotalar geçerlidir. Tam kurulum ve sınırlar: [FIREBASE-SETUP.md](FIREBASE-SETUP.md).
+
+## 1.8.0 — Kupa, prestij, avatar ve dört yeni şehir
+
+- Aktif puan sistemi kaldırıldı: eski puanlar kupaya çevrilmeden yeni sezon 0 kupadan başlar. Yerel ve bulut kayıtları şema 2’ye normalize edilir; aşama/cüzdan/seri korunur. Tarihi Firestore puan belgeleri arşiv olarak kalır, yeni sıralamaya dahil olmaz.
+- Aşama başına ilk tamamlamaya 20 kupa. Eski tamamlanmış aşamalar da yeni sezonda yeniden bitirilerek bir kez kupa verir. Prestij 1000 kupa harcar, seviye +1; aşama haklarını yenilemez. 64 aşamada toplam 1280 kupa mümkündür.
+- “Bu cihaz” sıralaması kaldırıldı. Her UID için tek `trophyPlayers` kaydı; kupa sıralaması ve 1000 kupada açılan, prestij sonrası açık kalan kırmızı Prestij sekmesi.
+- Saç, kıyafet, göz, yüz ifadesi, şapka için özgün SVG avatar düzenleyici. Beş kategoride dörder seçenek; cihazda ve Google bulut kaydında korunur, sıralamada görünür.
+- Mevcut 24 aşamanın ID’leri korundu. Bartın, Bolu, Zonguldak ve Kocaeli’ye onar yeni aşama ve özgün vektör sahne: toplam **64 aşama / 10 bölge**.
+- Tamamlama ekranında puan yok; kupa ve altın gösterilir. İlk açılışta “Puan sistemi değişti” + Tamam bilgilendirmesi hesap/misafir başına bu cihazda bir kez çıkar.
+- **Güncel Firestore kuralları zorunlu**, tüm cihazlar 1.8.0’a güncellenmeli. Eski şema yazmaları reddedilir. Şema 2 ve herkese açık kupa kaydı tek transaction’da yazılır. Spark desteklenir; yeni bir ücretli sunucu veya composite index gerekmez. [Kurulum](FIREBASE-SETUP.md).

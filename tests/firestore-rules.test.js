@@ -5,7 +5,7 @@ import {dayWindow} from '../shared/practice.js';
 
 test('Firestore rules: immutable daily likes, private tokens/inbox and existing scores', {skip:!process.env.FIRESTORE_EMULATOR_HOST,timeout:60000},async()=>{
  const {initializeTestEnvironment,assertSucceeds,assertFails}=await import('@firebase/rules-unit-testing');
- const {doc,getDoc,setDoc,updateDoc,deleteDoc,serverTimestamp}=await import('firebase/firestore');
+ const {doc,getDoc,setDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch}=await import('firebase/firestore');
  const env=await initializeTestEnvironment({projectId:'demo-kelime-seyyahi',firestore:{rules:readFileSync(new URL('../firestore.rules',import.meta.url),'utf8')}});
  try{
  await env.clearFirestore();const {day,start}=dayWindow();
@@ -37,7 +37,7 @@ test('Firestore rules: immutable daily likes, private tokens/inbox and existing 
  await assertFails(deleteDoc(doc(recipient,inboxPath)));
  await assertFails(setDoc(doc(sender,'userNotifications/recipient/items/fake'),{body:'spam',read:false}));
  await assertFails(getDoc(doc(other,inboxPath)));
- const savePath='playerSaves/recipient',save={version:1,revision:1,writeId:'first-save',state:cleanAccount({stage:8,wallet:{gold:100}}),updatedAt:serverTimestamp()};
+ const savePath='playerSaves/recipient',save={version:2,revision:1,writeId:'first-save',state:cleanAccount({stage:8,wallet:{gold:100}}),updatedAt:serverTimestamp()};
  await assertSucceeds(setDoc(doc(recipient,savePath),save));
  await assertSucceeds(getDoc(doc(recipient,savePath)));
  await assertFails(getDoc(doc(sender,savePath)));
@@ -45,9 +45,19 @@ test('Firestore rules: immutable daily likes, private tokens/inbox and existing 
  await assertFails(setDoc(doc(sender,savePath),{...save,revision:2}));
  await assertFails(setDoc(doc(recipient,savePath),save));
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:3}));
- await assertFails(setDoc(doc(recipient,savePath),{...save,revision:2,state:{...save.state,stage:25}}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:2,state:{...save.state,stage:65}}));
  await assertFails(setDoc(doc(recipient,savePath),{...save,revision:2,state:{...save.state,wallet:{...save.state.wallet,gold:-1}}}));
  await assertSucceeds(setDoc(doc(recipient,savePath),{...save,revision:2,writeId:'second-save'}));
+ const ranking={uid:'recipient',name:'Ümit',trophies:0,prestige:0,avatar:save.state.avatar,updatedAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(recipient,'trophyPlayers/recipient'),ranking));
+ await assertSucceeds(getDoc(doc(guest,'trophyPlayers/recipient')));
+ await assertFails(setDoc(doc(sender,'trophyPlayers/recipient'),ranking));
+ await assertFails(setDoc(doc(recipient,'trophyPlayers/recipient'),{...ranking,trophies:1000}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:3,version:1}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:3,state:{...save.state,trophies:{season:1,claimed:[1,1],prestige:0}}}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:3,state:{...save.state,trophies:{season:1,claimed:[65],prestige:0}}}));
+ await assertFails(setDoc(doc(recipient,savePath),{...save,revision:3,state:{...save.state,trophies:{season:1,claimed:[],prestige:1}}}));
+ const atomic=writeBatch(recipient);atomic.set(doc(recipient,savePath),{...save,revision:3,state:{...save.state,trophies:{season:1,claimed:[1],prestige:0}}});atomic.set(doc(recipient,'trophyPlayers/recipient'),{...ranking,trophies:20});await assertSucceeds(atomic.commit());
  await assertFails(deleteDoc(doc(recipient,savePath)));
  await assertSucceeds(getDoc(doc(guest,'wordScores/today')));
  await assertSucceeds(setDoc(doc(sender,'wordScores/own'),{uid:'sender',name:'Sender',score:100,mode:'word',date:Date.now()}));

@@ -1,10 +1,34 @@
-# Kelime Seyyahı 1.7.0 — Google hesabına bağlı bulut kaydı ve ücretsiz beğeniler
+# Kelime Seyyahı 1.8.0 — Google hesabına bağlı bulut kaydı ve ücretsiz beğeniler
 
 **Blaze, ödeme yöntemi, Cloud Functions veya FCM sunucusu gerekmez. Firebase planını yükseltme.**
 
+## 1.8.0 için önemli: kupa, prestij ve avatar
+
+**Bu sürüm için `firestore.rules` dosyasının tamamını yeniden yayınla.** `playerSaves` artık şema sürümü 2’dir; 64 aşama, kupa hakları, prestij ve avatar saklanır. Yeni `trophyPlayers` koleksiyonu herkese açık kupa/prestij sıralamasıdır. Yalnızca kendi UID’sine yazılabilir; kamuya açık kupa/avatardaki değerler aynı transaction’daki özel oyun kaydıyla eşleşmek zorundadır. İlave composite index veya ücretli sunucu gerekmez.
+
+1. Firebase → Firestore Database → Rules: bu sürümdeki **tam dosyayı** yayınla. Başka uygulamalara ait kuralları koru; hiçbir koleksiyonu silme.
+2. **Bütün cihazlarda 1.8.0 sürümünü kullan.** Eski sürümler şema 1 yazdığı için yeni kurallar eski istemcilerin bulut yazmasını reddeder. Bu, kupaların eski bir istemci tarafından silinmesini önler.
+3. Önce mevcut ilerlemenin bulunduğu cihazda güncelle. Metinleri ve “Puan sistemi değişti” ekranını **Tamam** ile kapat. Profil → Şimdi eşitle ile sunucu onayını gör.
+4. Sonra diğer cihazlarda aynı Google hesabıyla devam et. Birden fazla cihazın bekleyen değişiklikleri varsa kayıt seçimini dikkatle yap.
+
+### Yeni ekonomi
+
+- Eski puanlar **aktif oyun ve yeni sıralamada sıfırlanır**, kupaya çevrilmez. Eski Firebase `wordScores`/`scores` belgeleri ve yerel yedekler fiziksel olarak topluca silinmedi; arşivdir ve yeni sıralamaya katılmaz. Bu ortamda canlı yönetici erişimiyle veri silme yapılmadı.
+- Eski aşamalar, altın ve ipuçları korunur. Önceden tamamlanmış aşamalar yeniden oynanarak yeni kupa sistemindeki ilk 20 kupası alınabilir. Yeniden altın verilmez.
+- Her aşama ID’si için **bir kez 20 kupa**. Bonus kelimeler ve tekrar tamamlama ekstra kupa vermez.
+- 1000 kupada Prestij sekmesi açılır. Onayla **1000 kupa harca → prestij +1**; kalan kupa ve aşamalar korunur. Prestij sekmesi sonradan kupa 1000’in altına inse de açık kalır. Prestijler kırmızı gösterilir. Kupa hakları prestijle sıfırlanmaz.
+- 64 aşama × 20 = toplam 1280 kupa: bu içerikle en fazla bir prestij ve 280 kalan kupa mümkündür. Daha yüksek prestij için ileride yeni aşamalar gerekir; döngüsel/sınırsız kupa yoktur.
+- Dünya listesi `trophyPlayers` üzerinden en yüksek 20 kupayı; Prestij listesi prestij seviyesi pozitif en yüksek 20 hesabı okur. “Bu cihaz” rekor sekmesi kaldırıldı.
+- Ad, UID, kupa, prestij ve seçilen avatar parçaları sıralamada herkese açıktır. Avatar beş kategoride dörder seçenektir: saç, kıyafet, göz, yüz ifadesi, şapka. Her değişiklik cihazda saklanır ve hesap eşitlemesine dahil olur.
+- Kupa hakkı ve bulmaca tamamlama istemci bildirimidir; sunucuda bulmaca tekrar oynatılarak doğrulanmaz. Sürüm denetimi kayıt çakışmalarını önler, hileye dayanıklı oyun otoritesi değildir.
+- Topluluk sayacı için yeni tamamlamalar eski uyumluluk koleksiyonuna `score: 0` ile kaydedilir; bu alan artık puan kazanımı değildir. Beğeniler ve Spark yöntemi korunur.
+- Bilgilendirme ekranı bu cihazda Google UID/misafir başına bir kez gösterilir. Uygulama verileri silinirse veya başka cihazda ilk kez açılırsa yeniden gösterilir.
+
+## Önceki bulut kaydı kurulumunun genel bilgileri (1.8.0’a da uygulanır)
+
 ## Yapılacaklar
 
-1. 1.7.0 APK’sını mevcut uygulamanın üzerine yükle; uygulamayı silme.
+1. 1.8.0 APK’sını mevcut uygulamanın üzerine yükle; uygulamayı silme.
 2. Google ile giriş yap ve güncellenen gizlilik metnini incele.
 3. **Yeni `playerSaves` kuralı gerekli:** Firestore Database → Rules bölümüne bu sürümün `firestore.rules` dosyasının tamamını koy ve Publish seç. Eski beğeni kuralları tek başına bulut oyun kaydına izin vermez. Başka uygulamalara ait kuralları koru; verileri/koleksiyonları silme.
 4. **Topluluk → Sana gelen alkışlar** bölümünü aç. Mevcut beğeni kayıtları doğrudan okunur; önceden yapılmış beğeniler de aşağıdaki tarih sınırı içinde görünür.
@@ -14,14 +38,14 @@
 1. **Önce ilerlemenin bulunduğu eski cihazı güncelle.** O cihazda doğru Google hesabının açık olduğunu kontrol et. İlk yükseltmede mevcut cihaz ilerlemesi açık olan hesaba bağlanır ve `seyyah-before-account-sync` yerel yedeği alınır. Eski yerel kayıtlar hesaplar arasında ortak olduğu için bu ilk hesabı dikkatle seç.
 2. Yeni Firestore kurallarını yayınla; uygulamadaki yeni metni kabul et.
 3. Profil → Google bulut kaydı → **Şimdi eşitle**. “Google hesabına kaydedildi” veya “kaydın güncel” durumunu görmeden diğer cihaza geçme / eski uygulamayı kaldırma.
-4. Diğer cihazda 1.7.0 sürümünü aç, **aynı Google hesabıyla giriş yap** ve geri yüklemenin bitmesini bekle.
-5. Aşama, yarım bulmacanın bulunan kelimeleri, altın, ipuçları, günlük seri ve yerel en iyi 100 kelime kaydı geri gelir. Profildeki en iyi puan bu kayıtlarla aynı olur. Dünya sıralamasındaki tüm puan toplamları zaten ayrı `wordScores` verilerindedir; yedek yüklemek onları yeniden göndermez veya çoğaltmaz.
+4. Diğer cihazda 1.8.0 sürümünü aç, **aynı Google hesabıyla giriş yap** ve geri yüklemenin bitmesini bekle.
+5. Aşama, yarım bulmacanın bulunan kelimeleri, altın, ipuçları, günlük seri ve yerel en iyi 100 kelime kaydı geri gelir. Profildeki kupa bakiyesi bu kayıtlarla aynı olur. Sıralama artık trophyPlayers kullanır; eski wordScores puanları sıralamaya dahil edilmez.
 
 Google oturumu mevcut Firebase mekanizmasıyla cihazda korunur; yeni cihazda yine Google hesabına giriş yapmak gerekir. Hesaplar ve misafir oyunları artık ayrı cihaz önbellekleri kullanır. Yeni bir Google hesabına misafir ilerlemesi otomatik aktarılmaz; misafir kaydı cihazda korunur. Çıkış yapmak kayıtları silmez.
 
 Oyun değişiklikleri anında hesap önbelleğine yazılır, son değişiklikten yaklaşık 5 saniye sonra bulut eşitlemesi denenir. Uygulamayı çok hızlı kapatırsan son değişiklikler yalnızca cihazda kalabilir; cihaz değiştirmeden önce Profil’den Şimdi eşitle seç. Çevrimdışı değişiklikler sonraki eşitlemeye kadar cihazda bekler. Uygulama açılışı/giriş ve manuel eşitleme bulut kaydını kontrol eder; başka cihazdaki değişiklikler açık oyuna zorla yüklenmez.
 
-**İki cihazda aynı anda ilerleme olursa:** son kaydın üzerine sessizce yazılmaz. Profil’de cihaz/bulut aşamaları ve en iyi puanları gösterilir. “Buluttaki kayıttan devam et” veya “Bu cihazdaki kaydı buluta aktar” seçimini onayla. Seçim **cüzdan dahil bütün oyun kaydı** içindir; altınlar/puanlar toplanmaz. Sürüm kontrolü seçim anında tekrar yapılır. Seçim öncesi yerel yedek ve üzerine yazılacak bulut kaydının yerel kopyası saklanır; bunlar uygulama verisi silinirse kaybolur. Ayrı geçmiş sürüm listesi/otomatik geri alma arayüzü yoktur.
+**İki cihazda aynı anda ilerleme olursa:** son kaydın üzerine sessizce yazılmaz. Profil’de cihaz/bulut aşamaları ve kupa bakiyeleri gösterilir. “Buluttaki kayıttan devam et” veya “Bu cihazdaki kaydı buluta aktar” seçimini onayla. Seçim **cüzdan dahil bütün oyun kaydı** içindir; altınlar/puanlar toplanmaz. Sürüm kontrolü seçim anında tekrar yapılır. Seçim öncesi yerel yedek ve üzerine yazılacak bulut kaydının yerel kopyası saklanır; bunlar uygulama verisi silinirse kaybolur. Ayrı geçmiş sürüm listesi/otomatik geri alma arayüzü yoktur.
 
 Sunucuda yalnızca hesap sahibi `playerSaves/{uid}` kaydını okuyup yazabilir. Yazma kimliği, zaman aşımı sonrası aynı kaydın tekrar gönderilmesini ayırt eder; sürüm numarası eski cihazın yeni kaydı ezmesini önler. Oyun değerleri istemciden geldiği için bu bir hile önleme sistemi değildir. Firebase Admin/proje sahibi erişimi mümkündür. Otomatik silme yoktur; veri silme talepleri destek üzerinden ele alınmalıdır.
 

@@ -5,7 +5,11 @@ export const REGIONS=[
  {name:'Ege kıyıları',subtitle:'Mavinin peşinde',color:'#448fa4',sky:'#d8edf2'},
  {name:'Pamukkale',subtitle:'Beyaz bir yolculuk',color:'#719fa3',sky:'#e3f3ef'},
  {name:'Kaçkar dağları',subtitle:'Zirveye bir kelime',color:'#668568',sky:'#e2ebdf'},
- {name:'Mardin',subtitle:'Taşların anlattıkları',color:'#af8a56',sky:'#f4e8d4'}
+ {name:'Mardin',subtitle:'Taşların anlattıkları',color:'#af8a56',sky:'#f4e8d4'},
+ {name:'Bartın',subtitle:'Amasra’dan yeşil kıyılara',color:'#468e82',sky:'#dceee4'},
+ {name:'Bolu',subtitle:'Göller, ormanlar ve yeni kelimeler',color:'#658151',sky:'#e3ecd6'},
+ {name:'Zonguldak',subtitle:'Karadeniz’in emek dolu kıyısı',color:'#587b91',sky:'#dce8ee'},
+ {name:'Kocaeli',subtitle:'Körfezden Kartepe’ye yolculuk',color:'#657b9c',sky:'#e1e8f2'}
 ];
 const data=[
  ['KALE',['KALE','KEL','KAL','EL','EK'],['AL','AK']],
@@ -31,6 +35,48 @@ const data=[
  ['KELİME',['KELİME','EKİM','ELEK','EMEL','EL'],['EK','KEL','İL','İM']],
  ['SAHİL',['SAHİL','İLAH','HAL','SAL','HAS'],['İS','AL','AH']],
  ['MASAL',['MASAL','MASA','ASAL','SAL','AMA'],['AL','AS']],
- ['DOĞA',['DOĞA','DAĞ','AĞ','AD'],[]]
+ ['DOĞA',['DOĞA','DAĞ','AĞ','AD'],[]],
+ ['BARTIN',['BARTIN','ARTI','TANRI','AT','AN'],[]],
+ ['AMASRA',['AMASRA','MASA','SARA','ARA'],[]],
+ ['IRMAK',['IRMAK','IRAK','KIR','KAR'],[]],
+ ['LİMAN',['LİMAN','İMAN','MAL','AL'],[]],
+ ['KUMSAL',['KUMSAL','KUM','KAL','SAL'],[]],
+ ['DALGA',['DALGA','DALA','DAL','AL'],[]],
+ ['MARTI',['MARTI','ARTI','TAM','AT'],[]],
+ ['YELKEN',['YELKEN','YELEK','YEL','EL'],[]],
+ ['KAYIK',['KAYIK','KAYI','KAY','AY'],[]],
+ ['KARPUZ',['KARPUZ','PARK','KAZ','AZ'],[]],
+ ['BOLU',['BOLU','BOL','OL'],[]],
+ ['GÖLCÜK',['GÖLCÜK','GÖL','KÜL','ÖL'],[]],
+ ['ABANT',['ABANT','BANT','TAN','AT'],[]],
+ ['YAYLA',['YAYLA','YAYA','YAY','AY'],[]],
+ ['ÇAMLIK',['ÇAMLIK','ÇAM','ÇAKIL','KIL'],[]],
+ ['YAMAÇ',['YAMAÇ','YAMA','AMA','AY'],[]],
+ ['ÇINAR',['ÇINAR','ÇIRA','NAR','AN'],[]],
+ ['KAYNAK',['KAYNAK','KAYAN','KAYA','YAN'],[]],
+ ['SERİN',['SERİN','ESİR','SERİ','İN'],[]],
+ ['TOPRAK',['TOPRAK','ORTAK','PARK','KAR'],[]],
+ ['MADEN',['MADEN','NEM','DEM','AD'],[]],
+ ['KÖMÜR',['KÖMÜR','KÖR','KÜR','ÖR'],[]],
+ ['EMEK',['EMEK','EK'],[]],
+ ['FENER',['FENER','FEN','FER','EN'],[]],
+ ['KİLİM',['KİLİM','İLİM','KİM','İL'],[]],
+ ['ÇELİK',['ÇELİK','ÇİLE','ÇEK','İL'],[]],
+ ['KENT',['KENT','NET','TEK','EN'],[]],
+ ['KIYI',['KIYI','KIY','YIK'],[]],
+ ['DALGIÇ',['DALGIÇ','DAL','ÇALI','AL'],[]],
+ ['YILDIZ',['YILDIZ','YIL'],[]],
+ ['KOCAELİ',['KOCAELİ','KOCA','KALE','EL'],[]],
+ ['İZMİT',['İZMİT','İZ','İT'],[]],
+ ['KÖRFEZ',['KÖRFEZ','KÖR','ÖRF','ÖZ'],[]],
+ ['KARTEPE',['KARTEPE','TEPE','PARK','KAR'],[]],
+ ['GEBZE',['GEBZE','GEZ','BEZ','EZ'],[]],
+ ['DARICA',['DARICA','DARI','ACI','ARA'],[]],
+ ['İSKELE',['İSKELE','ELEK','LEKE','EL'],[]],
+ ['VAPUR',['VAPUR','VAR','VUR','AR'],[]],
+ ['SANAYİ',['SANAYİ','YASA','AYNA','YAN'],[]],
+ ['ZİRVE',['ZİRVE','VERİ','İZ','EV'],[]]
 ];
-export const LEVELS=data.map(([letters,words,bonus],i)=>({id:i+1,letters:[...letters],words,bonus,region:REGIONS[Math.floor(i/4)]}));
+export const LEVELS=data.map(([letters,words,bonus],i)=>({id:i+1,letters:[...letters],words,bonus,regionIndex:i<24?Math.floor(i/4):6+Math.floor((i-24)/10),region:REGIONS[i<24?Math.floor(i/4):6+Math.floor((i-24)/10)]}));
+
+export const regionLevels=index=>LEVELS.filter(l=>l.regionIndex===index);

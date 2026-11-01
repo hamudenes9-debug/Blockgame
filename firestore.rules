@@ -9,27 +9,44 @@ service cloud.firestore {
     function todayStartMillis() {
       return (request.time + duration.value(3, 'h')).date().toMillis() - 10800000;
     }
+    function validAvatar(a) {
+      return a is map && a.keys().hasOnly(['hair','outfit','eyes','face','hat'])
+        && a.hair is int && a.hair >= 0 && a.hair <= 3
+        && a.outfit is int && a.outfit >= 0 && a.outfit <= 3
+        && a.eyes is int && a.eyes >= 0 && a.eyes <= 3
+        && a.face is int && a.face >= 0 && a.face <= 3
+        && a.hat is int && a.hat >= 0 && a.hat <= 3;
+    }
+    function validTrophies(t) {
+      return t is map && t.keys().hasOnly(['season','claimed','prestige'])
+        && t.season == 1 && t.claimed is list && t.claimed.size() <= 64
+        && t.claimed.toSet().size() == t.claimed.size()
+        && t.claimed.hasOnly([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64])
+        && t.prestige is int && t.prestige >= 0
+        && t.prestige * 1000 <= t.claimed.size() * 20;
+    }
     // Private, versioned Google account backup. No paid server required.
     function validPlayerSave() {
       let data = request.resource.data;
       let state = data.state;
       return data.keys().hasOnly(['version','revision','writeId','state','updatedAt'])
-        && data.version == 1
+        && data.version == 2
         && data.revision is int && data.revision >= 1
         && data.writeId is string && data.writeId.size() > 0 && data.writeId.size() <= 100
         && data.updatedAt == request.time
         && state is map
-        && state.keys().hasOnly(['stage','wallet','progress','records','streak'])
-        && state.stage is int && state.stage >= 1 && state.stage <= 24
-        && state.progress is map && state.progress.size() <= 24
-        && state.records is list && state.records.size() <= 100
+        && state.keys().hasOnly(['stage','wallet','progress','records','streak','trophies','avatar'])
+        && state.stage is int && state.stage >= 1 && state.stage <= 64
+        && state.progress is map && state.progress.size() <= 64
+        && state.records is list && state.records.size() == 0
         && state.streak is map && state.streak.size() <= 4
         && state.wallet is map
         && state.wallet.keys().hasOnly(['gold','hints','claimed','migrated'])
         && state.wallet.gold is int && state.wallet.gold >= 0 && state.wallet.gold <= 1000000000
         && state.wallet.hints is int && state.wallet.hints >= 0 && state.wallet.hints <= 1000000
-        && state.wallet.claimed is list && state.wallet.claimed.size() <= 24
-        && state.wallet.migrated == true;
+        && state.wallet.claimed is list && state.wallet.claimed.size() <= 64
+        && state.wallet.migrated == true
+        && validTrophies(state.trophies) && validAvatar(state.avatar);
     }
     match /playerSaves/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
@@ -37,6 +54,23 @@ service cloud.firestore {
         && validPlayerSave() && request.resource.data.revision == 1;
       allow update: if request.auth != null && request.auth.uid == uid
         && validPlayerSave() && request.resource.data.revision == resource.data.revision + 1;
+      allow delete: if false;
+    }
+    // Public trophy ranking mirrors the owner's private save in the same transaction.
+    match /trophyPlayers/{uid} {
+      function validRanking() {
+        let data = request.resource.data;
+        let save = getAfter(/databases/$(database)/documents/playerSaves/$(uid)).data;
+        return data.keys().hasOnly(['uid','name','trophies','prestige','avatar','updatedAt'])
+          && data.uid == uid && data.name is string && data.name.size() <= 100
+          && data.updatedAt == request.time && save.version == 2
+          && data.trophies is int
+          && data.trophies == save.state.trophies.claimed.size() * 20 - save.state.trophies.prestige * 1000
+          && data.prestige == save.state.trophies.prestige
+          && data.avatar == save.state.avatar && validAvatar(data.avatar);
+      }
+      allow read: if true;
+      allow create, update: if request.auth != null && request.auth.uid == uid && validRanking();
       allow delete: if false;
     }
     // Daily activity is derived from existing public wordScores; likes are
