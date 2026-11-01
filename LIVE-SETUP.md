@@ -110,3 +110,7 @@ Script kullanıcı tarafından çalıştırılmadan üretim kuralları/ayarları
 Premium bölüm bonusu `premiumRewards/{uid}/levels/{level}` tek-seferlik makbuzuyla korunur. Bayramla birleşen 80 kupa aynı makbuzda `festival:true` olarak doğrulanır; ayrıca ikinci bir bayram makbuzu gerektirmez. Normal bayram bonusunda önceki `festivalRewards` makbuzu kullanılır. Başlangıç/yeniden deneme, süre sonu ve iki cihaz kontrolleri Firebase kurallarındadır. Standart altın ve bulmaca çözüm verileri hâlâ istemci bildirimidir; bu tam çözüm/cüzdan anti-cheat sistemi değildir.
 
 Premium ilk tamamlamada doğrulanamıyorsa standart ödül verilir; çevrimdışı bitirilen eski bölümlere geriye dönük 2× eklenmez. Bonus onaylanmadan süre biter veya etkinlik kapanırsa onaysız ek ödül uzlaştırılır; standart ilerleme korunur. Kalıcı avatar hakkı ilk başarılı aktif-Premium doğrulamasında açılır; henüz açılmadan Premium süresi bittiyse sonradan otomatik hak üretilmez. Günlük görev altını ödülün alınma anındaki Premium durumuyla belirlenir, görev ipucu miktarı değişmez.
+
+## Cloud Shell’den hızlı duyuru
+
+`/Duyuru 'Metin'` komutunun kurulumu ve kullanım sınırları: [DUYURU-REHBERI.md](DUYURU-REHBERI.md). Oyun içi duyurudur; push göndermez. Komutun `shell-` kimlikli duyuruları GitHub yayıncısında korunur. Liste dolarsa eski duyurular otomatik silinmez.

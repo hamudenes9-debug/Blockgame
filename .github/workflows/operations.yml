@@ -23,6 +23,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: admin-tools/package-lock.json
+      - name: Test announcement command
+        run: |
+          python3 -m unittest discover -s admin-tools/tests -p '*_test.py'
+          node --test admin-tools/tests/*.test.mjs
+          bash -n admin-tools/install-duyuru.sh
       - run: npm ci --prefix admin-tools --ignore-scripts
       - name: Check administrator setup
         id: setup
